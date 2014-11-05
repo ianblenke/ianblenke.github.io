@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Aws | Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/blog/categories/aws/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-05T16:21:38-05:00</updated>
+  <updated>2014-11-05T16:23:18-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -159,7 +159,7 @@ AWS_S3_PORT=$(docker run --rm coreos/etcd /bin/sh -c "cd /go/src/github.com/core
 
 <p>Likewise, you may need to specify an URL scheme of &ldquo;http&rdquo;, as the above does not expose an HTTPS encrypted port.</p>
 
-<p>There are also S3 client changes that (may be necessary)[<a href="https://github.com/deis/deis/issues/2326">https://github.com/deis/deis/issues/2326</a>] depending on the &ldquo;calling format&rdquo; of the client libraries. You may need to <a href="http://stackoverflow.com/questions/24312350/using-paperclip-fog-and-ceph">changes things like paperclip</a> to <a href="https://github.com/thoughtbot/paperclip/issues/1577">work with fog</a>. There are numerous tools that work happily with ceph, like <a href="https://github.com/stiller/s3_to_ceph/blob/master/s3_to_ceph.rb">s3_to_ceph</a> and even gems like <a href="https://github.com/fog/fog-radosgw">fog-radosgw</a> that try and help make this painless for your apps.</p>
+<p>There are also S3 client changes that <a href="https://github.com/deis/deis/issues/2326">may be necessary</a> depending on the &ldquo;calling format&rdquo; of the client libraries. You may need to <a href="http://stackoverflow.com/questions/24312350/using-paperclip-fog-and-ceph">changes things like paperclip</a> to <a href="https://github.com/thoughtbot/paperclip/issues/1577">work with fog</a>. There are numerous tools that work happily with ceph, like <a href="https://github.com/stiller/s3_to_ceph/blob/master/s3_to_ceph.rb">s3_to_ceph</a> and even gems like <a href="https://github.com/fog/fog-radosgw">fog-radosgw</a> that try and help make this painless for your apps.</p>
 
 <p>I will update this blog post shortly with an example of a containerized s3 client to show how to prove your ceph radosgw is working.</p>
 

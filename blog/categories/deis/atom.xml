@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Deis | Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/blog/categories/deis/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-05T15:43:03-05:00</updated>
+  <updated>2014-11-05T15:44:56-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -52,11 +52,13 @@
 
 <p>First, make sure your environment includes the <code>DOCKER_HOST</code> and related variables for the boot2docker environment:</p>
 
-<p>   eval $(boot2docker shellinit)</p>
+<pre><code>eval $(boot2docker shellinit)
+</code></pre>
 
 <p>Now, discover the IP of the boot2docker guest VM, as that is what we will bind the etcd to:</p>
 
-<p>   IP=&ldquo;$(boot2docker ip 2>/dev/null)&rdquo;</p>
+<pre><code>IP="$(boot2docker ip 2&gt;/dev/null)"
+</code></pre>
 
 <p>Next, we can spawn etcd and publish the ports for the other containers to use:</p>
 

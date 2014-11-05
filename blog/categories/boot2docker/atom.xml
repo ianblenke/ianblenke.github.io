@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Boot2docker | Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/blog/categories/boot2docker/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-04T23:08:29-05:00</updated>
+  <updated>2014-11-04T23:24:47-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -12,6 +12,15 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Using Boot2Docker]]></title>
+    <link href="http://ianblenke.github.io/blog/2014/11/04/using-boot2docker/"/>
+    <updated>2014-11-04T23:13:25-05:00</updated>
+    <id>http://ianblenke.github.io/blog/2014/11/04/using-boot2docker</id>
+    <content type="html"><![CDATA[<p>Now that we have Boot2Docker installed</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Installing Boot2Docker]]></title>

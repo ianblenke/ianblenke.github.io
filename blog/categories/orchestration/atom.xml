@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Orchestration | Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/blog/categories/orchestration/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-05T16:21:06-05:00</updated>
+  <updated>2014-11-05T16:21:38-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -34,7 +34,7 @@
 </ul>
 
 
-<p>There are a few good functional options for actual S3 implementations:</p>
+<p>There are a number of good functional options for actual S3 implementations:</p>
 
 <ul>
 <li><a href="http://ceph.com">ceph</a> (github <a href="https://github.com/ceph/ceph">ceph/ceph</a>), specifically the <a href="http://ceph.com/docs/master/radosgw/">radosgw</a></li>

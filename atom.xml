@@ -4,7 +4,7 @@
   <title><![CDATA[Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-07T21:26:58-05:00</updated>
+  <updated>2014-11-07T21:28:10-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -14,9 +14,9 @@
 
   
   <entry>
-    <title type="html"><![CDATA[Bootstrapping Docker Orchestration]]></title>
+    <title type="html"><![CDATA[Fig Docker]]></title>
     <link href="http://ianblenke.github.io/blog/2014/11/07/fig-docker/"/>
-    <updated>2014-11-07T19:20:06-05:00</updated>
+    <updated>2014-11-07T00:00:00-05:00</updated>
     <id>http://ianblenke.github.io/blog/2014/11/07/fig-docker</id>
     <content type="html"><![CDATA[<p>A common devops problem when developing <a href="http://docker.io">Docker</a> containers is managing the orchestration of multiple containers in a development environment.</p>
 

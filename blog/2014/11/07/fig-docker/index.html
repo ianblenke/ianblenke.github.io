@@ -90,7 +90,7 @@
   
 
 
-<time datetime="2014-11-07T19:20:06-05:00" pubdate data-updated="true"></time>
+Nov 7th, 2014
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://ianblenke.github.io">Comments</a>
@@ -105,64 +105,62 @@
 <p>There are a number of orchestration harnesses for Docker available:</p>
 
 <ul>
-<li>Docker&rsquo;s <a href="http://fig.sh">Fig</a></li>
-<li><a href="https://docs.vagrantup.com/v2/provisioning/docker.html">Vagrant</a></li>
-<li><a href="https://github.com/GoogleCloudPlatform/kubernetes">kubernetes</a></li>
-<li><a href="https://github.com/signalfuse/maestro-ng">maestro-ng</a></li>
-<li>Centurylink&rsquo;s <a href="http://panamax.io/">Panamax</a></li>
-<li><a href="http://shipyard-project.com/">Shipyard</a></li>
-<li><a href="http://decking.io/">Decking</a></li>
-<li>NewRelic&rsquo;s <a href="https://github.com/newrelic/centurion">Centurion</a></li>
-<li>Spotify&rsquo;s <a href="https://github.com/spotify/helios">Spotify&rsquo;s</a></li>
-<li><a href="https://github.com/cattleio/stampede">Stampede</a></li>
-<li><a href="https://www.getchef.com/solutions/docker/">Chef</a></li>
-<li><a href="http://www.ansible.com/docker">Ansible</a></li>
-<li><a href="https://flynn.io/">Flynn</a></li>
-<li><a href="http://tsuru.io/">Tsuru</a></li>
-<li><a href="https://clusterhq.com/">Flocker</a></li>
-<li><a href="https://github.com/CloudCredo/cloudfocker">CloudFocker</a></li>
-<li><a href="http://cloudfoundry.org">CloudFoundry</a>&rsquo;s <a href="https://github.com/cf-platform-eng/docker-boshrelease">docker-boshrelease</a>/<a href="https://github.com/cloudfoundry-incubator/diego-release">diego</a></li>
-<li><a href="http://deis.io">Deis</a> (a PaaS that can git push deploy containers using <a href="http://heroku.com">Heroku</a> buildpacks <em>or</em> a Dockerfile)</li>
+  <li>Docker’s <a href="http://fig.sh">Fig</a></li>
+  <li><a href="https://docs.vagrantup.com/v2/provisioning/docker.html">Vagrant</a></li>
+  <li><a href="https://github.com/GoogleCloudPlatform/kubernetes">kubernetes</a></li>
+  <li><a href="https://github.com/signalfuse/maestro-ng">maestro-ng</a></li>
+  <li>Centurylink’s <a href="http://panamax.io/">Panamax</a></li>
+  <li><a href="http://shipyard-project.com/">Shipyard</a></li>
+  <li><a href="http://decking.io/">Decking</a></li>
+  <li>NewRelic’s <a href="https://github.com/newrelic/centurion">Centurion</a></li>
+  <li>Spotify’s <a href="https://github.com/spotify/helios">Spotify’s</a></li>
+  <li><a href="https://github.com/cattleio/stampede">Stampede</a></li>
+  <li><a href="https://www.getchef.com/solutions/docker/">Chef</a></li>
+  <li><a href="http://www.ansible.com/docker">Ansible</a></li>
+  <li><a href="https://flynn.io/">Flynn</a></li>
+  <li><a href="http://tsuru.io/">Tsuru</a></li>
+  <li><a href="https://clusterhq.com/">Flocker</a></li>
+  <li><a href="https://github.com/CloudCredo/cloudfocker">CloudFocker</a></li>
+  <li><a href="http://cloudfoundry.org">CloudFoundry</a>’s <a href="https://github.com/cf-platform-eng/docker-boshrelease">docker-boshrelease</a>/<a href="https://github.com/cloudfoundry-incubator/diego-release">diego</a></li>
+  <li><a href="http://deis.io">Deis</a> (a PaaS that can git push deploy containers using <a href="http://heroku.com">Heroku</a> buildpacks <em>or</em> a Dockerfile)</li>
 </ul>
-
 
 <p>There are also RAFT/GOSSIP clustering solutions like:</p>
 
 <ul>
-<li><a href="https://coreos.com/">CoreOS</a>/<a href="https://github.com/coreos/fleet">Fleet</a></li>
-<li><a href="https://www.openshift.com/products/origin">OpenShift Origin</a> uses <a href="http://www.projectatomic.io/">ProjectAtomic</a>/<a href="https://openshift.github.io/geard/">Geard</a></li>
+  <li><a href="https://coreos.com/">CoreOS</a>/<a href="https://github.com/coreos/fleet">Fleet</a></li>
+  <li><a href="https://www.openshift.com/products/origin">OpenShift Origin</a> uses <a href="http://www.projectatomic.io/">ProjectAtomic</a>/<a href="https://openshift.github.io/geard/">Geard</a></li>
 </ul>
 
-
-<p>My <a href="https://github.com/ianblenke/coreos-vagrant-kitchen-sink">coreos-vagrant-kitchen-sink</a> github project submits <a href="https://github.com/ianblenke/coreos-vagrant-kitchen-sink/tree/master/cloud-init">cloud-init units</a> via a YAML file when booting member nodes. It&rsquo;s a good model for production, but it&rsquo;s a bit heavy for development.</p>
+<p>My <a href="https://github.com/ianblenke/coreos-vagrant-kitchen-sink">coreos-vagrant-kitchen-sink</a> github project submits <a href="https://github.com/ianblenke/coreos-vagrant-kitchen-sink/tree/master/cloud-init">cloud-init units</a> via a YAML file when booting member nodes. It’s a good model for production, but it’s a bit heavy for development.</p>
 
 <p>Docker is currently working on <a href="https://www.youtube.com/watch?v=vtnSL79rZ6o">Docker Clustering</a>, but it is presently just a proof-of-concept and is now under a total re-write.</p>
 
-<p>They are also <a href="https://www.youtube.com/watch?v=YuSq6bXHnOI">implementing docker composition</a> which provides Fig like functionality using upcoming docker &ldquo;groups&rdquo;.</p>
+<p>They are also <a href="https://www.youtube.com/watch?v=YuSq6bXHnOI">implementing docker composition</a> which provides Fig like functionality using upcoming docker “groups”.</p>
 
 <p>That influence of Fig makes sense, as <a href="http://venturebeat.com/2014/07/22/docker-buys-orchard-a-2-man-startup-with-a-cloud-service-for-running-docker-friendly-apps/">Docker bought Orchard</a>.</p>
 
 <p>Internally, Docker developers use <a href="http://fig.sh">Fig</a>.</p>
 
-<p>Docker&rsquo;s website also directs everyone to <a href="http://boot2docker.io">Boot2Docker</a>, as that is the tool Docker developers use as their docker baseline environment.</p>
+<p>Docker’s website also directs everyone to <a href="http://boot2docker.io">Boot2Docker</a>, as that is the tool Docker developers use as their docker baseline environment. </p>
 
-<p>Boot2Docker spawns a <a href="https://www.virtualbox.org/">VirtualBox</a> based VM as well as a native docker client runtime on the developer&rsquo;s host machine, and provides the <code>DOCKER_HOST</code> and related enviroments necessary for the client to talk to the VM.</p>
+<p>Boot2Docker spawns a <a href="https://www.virtualbox.org/">VirtualBox</a> based VM as well as a native docker client runtime on the developer’s host machine, and provides the <code>DOCKER_HOST</code> and related enviroments necessary for the client to talk to the VM.</p>
 
-<p>This allows a developer&rsquo;s Windows or OS/X machine to have a docker command that behaves as if the docker containers are running natively on their host machine.</p>
+<p>This allows a developer’s Windows or OS/X machine to have a docker command that behaves as if the docker containers are running natively on their host machine.</p>
 
-<p>While Fig is easy to install under OS/X as it has native Python support (&ldquo;pip install fig&rdquo;), installing Fig on a Windows developer workstation would normally require Python support be installed separately.</p>
+<p>While Fig is easy to install under OS/X as it has native Python support (“pip install fig”), installing Fig on a Windows developer workstation would normally require Python support be installed separately.</p>
 
-<p>Rather than do that, I&rsquo;ve built a new <a href="https://registry.hub.docker.com/u/ianblenke/fig-docker/">ianblenke/fig-docker</a> docker Hub image, which is auto-built from <a href="https://github.com/ianblenke/docker-fig-docker">ianblenke/docker-fig-docker</a> on github.</p>
+<p>Rather than do that, I’ve built a new <a href="https://registry.hub.docker.com/u/ianblenke/fig-docker/">ianblenke/fig-docker</a> docker Hub image, which is auto-built from <a href="https://github.com/ianblenke/docker-fig-docker">ianblenke/docker-fig-docker</a> on github.</p>
 
 <p>This allows running fig inside a docker container using:</p>
 
-<pre><code>docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig --help
-</code></pre>
+<div><script src="https://gist.github.com/6cd8f8a4065bcac99443.js"></script>
+<noscript><pre><code>docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig --help</code></pre></noscript></div>
 
 <p>Alternatively, a developer can alias it:</p>
 
-<pre><code>alias fig="docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig"
-</code></pre>
+<div><script src="https://gist.github.com/f48bc5cf8b2567bd8006.js"></script>
+<noscript><pre><code>alias fig=&quot;docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig&quot;</code></pre></noscript></div>
 
 <p>Now the developer can run <code>fig</code> as if it is running on their development host, continuing the boot2docker illusion.</p>
 
@@ -174,10 +172,10 @@
 
 <p>To do that, on a Mac, do this:</p>
 
-<pre><code>boot2docker down
+<div><script src="https://gist.github.com/444c3f6552744ef25f59.js"></script>
+<noscript><pre><code>boot2docker down
 VBoxManage sharedfolder add boot2docker-vm -name home -hostpath /Users
-boot2docker up
-</code></pre>
+boot2docker up</code></pre></noscript></div>
 
 <p>From this point forward, until the next <code>boot2docker init</code>, your boot2docker VM should have your home directory mounted as /Users and the path should be the same.</p>
 
@@ -185,18 +183,19 @@ boot2docker up
 
 <p>This allows a normalized docker/fig interface for developers to begin their foray into docker orchestration.</p>
 
-<p>Let&rsquo;s setup a very quick <a href="http://rubyonrails.org/">Ruby on Rails</a> application from scratch, and then add a Dockerfile and fig.yml that spins up a mysql service for it to talk to.</p>
+<p>Let’s setup a very quick <a href="http://rubyonrails.org/">Ruby on Rails</a> application from scratch, and then add a Dockerfile and fig.yml that spins up a mysql service for it to talk to.</p>
 
-<p>Here&rsquo;s a quick script that does just that. The only requirement is a functional docker command able to spin up containers.</p>
+<p>Here’s a quick script that does just that. The only requirement is a functional docker command able to spin up containers.</p>
 
-<pre><code>#!/bin/bash
+<div><script src="https://gist.github.com/92648de57cb7d38fd1e8.js"></script>
+<noscript><pre><code>#!/bin/bash
 set -ex
 
 # Source the boot2docker environment variables
 eval $(boot2docker shellinit 2&gt;/dev/null)
 
 # Use a rails container to create a new rails project in the current directory called figgypudding
-docker run -it --rm -v $(pwd):/app rails:latest bash -c 'rails new figgypudding; cp -a /figgypudding /app'
+docker run -it --rm -v $(pwd):/app rails:latest bash -c &#39;rails new figgypudding; cp -a /figgypudding /app&#39;
 
 cd figgypudding
 
@@ -215,7 +214,7 @@ mysql:
     MYSQL_USER: figgyuser
     MYSQL_PASSWORD: password
   ports:
-    - "3306:3306"
+    - &quot;3306:3306&quot;
   image: mysql:latest
 figgypudding:
   environment:
@@ -224,32 +223,32 @@ figgypudding:
   links:
     - mysql
   ports:
-    - "3000:3000"
+    - &quot;3000:3000&quot;
   build: .
-  command: bash -xc 'bundle exec rake db:migrate &amp;&amp; bundle exec rails server'
+  command: bash -xc &#39;bundle exec rake db:migrate &amp;&amp; bundle exec rails server&#39;
 EOF
 
 # Rails defaults to sqlite, convert it to use mysql
-sed -i -e 's/sqlite3/mysql2/' Gemfile
+sed -i -e &#39;s/sqlite3/mysql2/&#39; Gemfile
 
 # Update the Gemfile.lock using the rails container we referenced earlier
 docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app rails:latest bundle update
 
 # Use the fig command from my fig-docker container to fire up the Fig formation
-docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig up
-</code></pre>
+docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig up</code></pre></noscript></div>
 
 <p>After running that, there should now be a web server running on the boot2docker VM, which should generally be <a href="http://192.168.59.103:3000/">http://192.168.59.103:3000/</a> as that seems to be the common boot2docker default IP.</p>
 
 <p>This is fig, distilled to its essence.</p>
 
-<p>Beyond this point, a developer can &ldquo;fig build ; fig up&rdquo; and see the latest result of their work. This is something ideally added as a git post-commit hook or a iteration harness like <a href="https://github.com/guard/guard">Guard</a>.</p>
+<p>Beyond this point, a developer can “fig build ; fig up” and see the latest result of their work. This is something ideally added as a git post-commit hook or a iteration harness like <a href="https://github.com/guard/guard">Guard</a>.</p>
 
 <p>While it may not appear <em>pretty</em> at first glance, realize that only <code>cat</code>, and <code>sed</code> were used on the host here (and very well could also themselves have also been avoided). No additional software was installed on the host, yet a rails app was created and deployed in docker containers, talking to a mysql server.</p>
 
 <p>And therein lies the elegance of dockerizing application deployment: simple, clean, repeatable units of software. Orchestrated.</p>
 
 <p>Have fun!</p>
+
 </div>
 
 
@@ -272,7 +271,7 @@ docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs
   
 
 
-<time datetime="2014-11-07T19:20:06-05:00" pubdate data-updated="true"></time>
+<time datetime="2014-11-07T19:20:06-05:00" pubdate data-updated="true">Nov 7th, 2014</time>
       
 
 <span class="categories">

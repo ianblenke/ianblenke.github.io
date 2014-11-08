@@ -90,7 +90,7 @@
   
 
 
-<time datetime="2014-11-04T23:13:25-05:00" pubdate data-updated="true"></time>
+Nov 4th, 2014
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://ianblenke.github.io">Comments</a>
@@ -100,7 +100,7 @@
   </header>
 
 
-<div class="entry-content"><h2>Boot2Docker command-line</h2>
+<div class="entry-content"><h2 id="boot2docker-command-line">Boot2Docker command-line</h2>
 
 <p>Preface: the <a href="https://github.com/boot2docker/boot2docker">boot2docker README</a> is a great place to discover the below commands in more detail.</p>
 
@@ -109,7 +109,7 @@
 <pre><code>boot2docker init
 </code></pre>
 
-<p>This merely defines the default boot2docker VM, it does not start it. To do that, we need to bring it &ldquo;up&rdquo;</p>
+<p>This merely defines the default boot2docker VM, it does not start it. To do that, we need to bring it “up”</p>
 
 <pre><code>boot2docker up
 </code></pre>
@@ -132,7 +132,7 @@ To connect the Docker client to the Docker daemon, please set:
 icbcfmbp:~ icblenke$
 </code></pre>
 
-<p>This is all fine and dandy, but that shell didn&rsquo;t actually source those variables. To do that we use boot2docker shellinit:</p>
+<p>This is all fine and dandy, but that shell didn’t actually source those variables. To do that we use boot2docker shellinit:</p>
 
 <pre><code>eval $(boot2docker shellinit)
 </code></pre>
@@ -146,7 +146,7 @@ icbcfmbp:~ icblenke$
 
 <p>After doing this, there is no longer a VM defined. We would need to go back to the boot2docker init step above and repeat.</p>
 
-<h2>Docker command-line</h2>
+<h2 id="docker-command-line">Docker command-line</h2>
 
 <p>From this point forward, we use the docker command to interact with the boot2docker VM as if we are on a linux docker host.</p>
 
@@ -169,11 +169,12 @@ Storage Driver: aufs
   Init Path: /usr/local/bin/docker
 </code></pre>
 
-<p>This holds true for both OS/X and Windows.</p>
+<p>This holds true for both OS/X and Windows. </p>
 
 <p>The boot2docker facade is just a handy wrapper to prepare the guest linux host VM for the docker daemin and local docker command-line client for your development host OS environment.</p>
 
 <p>And now you have a starting point for exploring <a href="http://docker.io">Docker</a>!</p>
+
 </div>
 
 
@@ -196,7 +197,7 @@ Storage Driver: aufs
   
 
 
-<time datetime="2014-11-04T23:13:25-05:00" pubdate data-updated="true"></time>
+<time datetime="2014-11-04T23:13:25-05:00" pubdate data-updated="true">Nov 4th, 2014</time>
       
 
 <span class="categories">

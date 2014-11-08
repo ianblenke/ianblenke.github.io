@@ -1,0 +1,470 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Bootstrapping Docker Orchestration - Ian Blenke - DevOps</title>
+  <meta name="author" content="Ian Blenke">
+
+  
+  <meta name="description" content="A common devops problem when developing Docker containers is managing the orchestration of multiple containers in a development environment. There &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://ianblenke.github.io/blog/2014/11/07/fig-docker">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ian Blenke - DevOps" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href='https://fonts.googleapis.com/css?family=Noto+Serif:400,700' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', '53218787']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Ian Blenke - DevOps</a></h1>
+  
+    <h2>A 6502 hack living in a cloud orchestration world</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  
+  
+</ul>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Bootstrapping Docker Orchestration</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-07T19:20:06-05:00" pubdate data-updated="true"></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://ianblenke.github.io">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>A common devops problem when developing <a href="http://docker.io">Docker</a> containers is managing the orchestration of multiple containers in a development environment.</p>
+
+<p>There are a number of orchestration harnesses for Docker available:</p>
+
+<ul>
+<li>OrchardUp&rsquo;s <a href="http://fig.sh">Fig</a></li>
+<li><a href="https://docs.vagrantup.com/v2/provisioning/docker.html">Vagrant</a></li>
+<li><a href="https://github.com/GoogleCloudPlatform/kubernetes">kubernetes</a></li>
+<li><a href="https://github.com/signalfuse/maestro-ng">maestro-ng</a></li>
+<li>Centurylink&rsquo;s <a href="http://panamax.io/">Panamax</a></li>
+<li><a href="http://shipyard-project.com/">Shipyard</a></li>
+<li><a href="http://decking.io/">Decking</a></li>
+<li>NewRelic&rsquo;s <a href="https://github.com/newrelic/centurion">Centurion</a></li>
+<li>Spotify&rsquo;s <a href="https://github.com/spotify/helios">Spotify&rsquo;s</a></li>
+<li><a href="https://github.com/cattleio/stampede">Stampede</a></li>
+<li><a href="https://www.getchef.com/solutions/docker/">Chef</a></li>
+<li><a href="http://www.ansible.com/docker">Ansible</a></li>
+<li><a href="https://flynn.io/">Flynn</a></li>
+<li><a href="http://tsuru.io/">Tsuru</a></li>
+<li><a href="https://clusterhq.com/">Flocker</a></li>
+<li><a href="https://github.com/CloudCredo/cloudfocker">CloudFocker</a></li>
+<li><a href="http://cloudfoundry.org">CloudFoundry</a>&rsquo;s <a href="https://github.com/cf-platform-eng/docker-boshrelease">docker-boshrelease</a>/<a href="https://github.com/cloudfoundry-incubator/diego-release">diego</a></li>
+<li><a href="http://deis.io">Deis</a> (a PaaS that can git push deploy containers using <a href="http://heroku.com">Heroku</a> buildpacks <em>or</em> a Dockerfile)</li>
+</ul>
+
+
+<p>There are also RAFT/GOSSIP clustering solutions like:</p>
+
+<ul>
+<li><a href="https://coreos.com/">CoreOS</a>/<a href="https://github.com/coreos/fleet">Fleet</a></li>
+<li><a href="https://www.openshift.com/products/origin">OpenShift Origin</a> uses <a href="http://www.projectatomic.io/">ProjectAtomic</a>/<a href="https://openshift.github.io/geard/">Geard</a></li>
+</ul>
+
+
+<p>My <a href="https://github.com/ianblenke/coreos-vagrant-kitchen-sink">coreos-vagrant-kitchen-sink</a> github project submits <a href="https://github.com/ianblenke/coreos-vagrant-kitchen-sink/tree/master/cloud-init">cloud-init units</a> via a YAML file when booting member nodes. It&rsquo;s a good model for production, but it&rsquo;s a bit heavy for development.</p>
+
+<p>Docker is currently working on <a href="https://www.youtube.com/watch?v=vtnSL79rZ6o">Docker Clustering</a>, but it is presently just a proof-of-concept and is now under a total re-write.</p>
+
+<p>They are also <a href="https://www.youtube.com/watch?v=YuSq6bXHnOI">implementing docker composition</a> which provides Fig like functionality using upcoming docker &ldquo;groups&rdquo;.</p>
+
+<p>That influence of Fig makes sense, as <a href="http://venturebeat.com/2014/07/22/docker-buys-orchard-a-2-man-startup-with-a-cloud-service-for-running-docker-friendly-apps/">Docker bought Orchard</a>.</p>
+
+<p>Internally, Docker developers use <a href="http://fig.sh">Fig</a>.</p>
+
+<p>Docker&rsquo;s website also directs everyone to <a href="http://boot2docker.io">Boot2Docker</a>, as that is the tool Docker developers use as their docker baseline environment.</p>
+
+<p>Boot2Docker spawns a <a href="https://www.virtualbox.org/">VirtualBox</a> based VM as well as a native docker client runtime on the developer&rsquo;s host machine, and provides the <code>DOCKER_HOST</code> and related enviroments necessary for the client to talk to the VM.</p>
+
+<p>This allows a developer&rsquo;s Windows or OS/X machine to have a docker command that behaves as if the docker containers are running natively on their host machine.</p>
+
+<p>While Fig is easy to install under OS/X as it has native Python support (&ldquo;pip install fig&rdquo;), installing Fig on a Windows developer workstation would normally require Python support be installed separately.</p>
+
+<p>Rather than do that, I&rsquo;ve built a new <a href="https://registry.hub.docker.com/u/ianblenke/fig-docker/">ianblenke/fig-docker</a> docker Hub image, which is auto-built from <a href="https://github.com/ianblenke/docker-fig-docker">ianblenke/docker-fig-docker</a> on github.</p>
+
+<p>This allows running fig inside a docker container using:</p>
+
+<pre><code>docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig --help
+</code></pre>
+
+<p>Alternatively, a developer can alias it:</p>
+
+<pre><code>alias fig="docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig"
+</code></pre>
+
+<p>Now the developer can run <code>fig</code> as if it is running on their development host, continuing the boot2docker illusion.</p>
+
+<p>In the above examples, the current directory <code>$(pwd)</code> is being mounted as /app inside the docker container.</p>
+
+<p>On a boot2docker install, the boot2docker VM is the actual source of that volume path.</p>
+
+<p>That means you would actually have to have the current path inside the boot2docker VM as well.</p>
+
+<p>To do that, on a Mac, do this:</p>
+
+<pre><code>boot2docker down
+VBoxManage sharedfolder add boot2docker-vm -name home -hostpath /Users
+boot2docker up
+</code></pre>
+
+<p>From this point forward, until the next <code>boot2docker init</code>, your boot2docker VM should have your home directory mounted as /Users and the path should be the same.</p>
+
+<p>A similar trick happens for Windows hosts, providing the same path inside the boot2docker VM as a developer would use.</p>
+
+<p>This allows a normalized docker/fig interface for developers to begin their foray into docker orchestration.</p>
+
+<p>Let&rsquo;s setup a very quick <a href="http://rubyonrails.org/">Ruby on Rails</a> application from scratch, and then add a Dockerfile and fig.yml that spins up a mysql service for it to talk to.</p>
+
+<p>Here&rsquo;s a quick script that does just that. The only requirement is a functional docker command able to spin up containers.</p>
+
+<pre><code>#!/bin/bash
+set -ex
+
+# Source the boot2docker environment variables
+eval $(boot2docker shellinit 2&gt;/dev/null)
+
+# Use a rails container to create a new rails project in the current directory called figgypudding
+docker run -it --rm -v $(pwd):/app rails:latest bash -c 'rails new figgypudding; cp -a /figgypudding /app'
+
+cd figgypudding
+
+# Create the Dockerfile used to build the figgypudding_web:latest image used by the figgypudding_web_1 container
+cat &lt;&lt;EOD &gt; Dockerfile
+FROM rails:onbuild
+ENV HOME /usr/src/app
+EOD
+
+# This is the Fig orchestration configuration
+cat &lt;&lt;EOF &gt; fig.yml
+mysql:
+  environment:
+    MYSQL_ROOT_PASSWORD: supersecret
+    MYSQL_DATABASE: figgydata
+    MYSQL_USER: figgyuser
+    MYSQL_PASSWORD: password
+  ports:
+    - "3306:3306"
+  image: mysql:latest
+figgypudding:
+  environment:
+    RAILS_ENV: development
+    DATABASE_URL: mysql2://figgyuser:password@172.17.42.1:3306/figgydata
+  links:
+    - mysql
+  ports:
+    - "3000:3000"
+  build: .
+  command: bash -xc 'bundle exec rake db:migrate &amp;&amp; bundle exec rails server'
+EOF
+
+# Rails defaults to sqlite, convert it to use mysql
+sed -i -e 's/sqlite3/mysql2/' Gemfile
+
+# Update the Gemfile.lock using the rails container we referenced earlier
+docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app rails:latest bundle update
+
+# Use the fig command from my fig-docker container to fire up the Fig formation
+docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs -e DOCKER_HOST=$DOCKER_HOST -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY -ti --rm ianblenke/fig-docker fig up
+</code></pre>
+
+<p>After running that, there should now be a web server running on the boot2docker VM, which should generally be <a href="http://192.168.59.103:3000/">http://192.168.59.103:3000/</a> as that seems to be the common boot2docker default IP.</p>
+
+<p>This is fig, distilled to its essence.</p>
+
+<p>Beyond this point, a developer can &ldquo;fig build ; fig up&rdquo; and see the latest result of their work. This is something ideally added as a git post-commit hook or a iteration harness like <a href="https://github.com/guard/guard">Guard</a>.</p>
+
+<p>While it may not appear <em>pretty</em> at first glance, realize that only <code>cat</code>, and <code>sed</code> were used on the host here (and very well could also themselves have also been avoided). No additional software was installed on the host, yet a rails app was created and deployed in docker containers, talking to a mysql server.</p>
+
+<p>And therein lies the elegance of dockerizing application deployment: simple, clean, repeatable units of software. Orchestrated.</p>
+
+<p>Have fun!</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">Ian Blenke</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+<time datetime="2014-11-07T19:20:06-05:00" pubdate data-updated="true"></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/development/'>development</a>, <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/fig/'>fig</a>, <a class='category' href='/blog/categories/orchestration/'>orchestration</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://ianblenke.github.io/blog/2014/11/07/fig-docker/" data-via="ianblenke" data-counturl="http://ianblenke.github.io/blog/2014/11/07/fig-docker/" >Tweet</a>
+  
+  
+  <div class="g-plusone" data-size="medium"></div>
+  
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/" title="Previous Post: Self-standing Ceph/deis-store docker containers">&laquo; Self-standing Ceph/deis-store docker containers</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+  <aside class="sidebar">
+   
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:ianblenke.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2014/11/07/fig-docker/">Bootstrapping Docker Orchestration</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/">Self-standing Ceph/deis-store Docker Containers</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/04/using-boot2docker/">Using Boot2Docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/04/installing-boot2docker/">Installing Boot2Docker</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/ianblenke">@ianblenke</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'ianblenke',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/+IanBlenke?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2014 - Ian Blenke -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'ianblenke';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://ianblenke.github.io/blog/2014/11/07/fig-docker/';
+        var disqus_url = 'http://ianblenke.github.io/blog/2014/11/07/fig-docker/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+<script>
+  $(document).ready(function() {  
+  var stickyNavTop = $('nav').offset().top;  
+    
+  var stickyNav = function(){  
+  var scrollTop = $(window).scrollTop();  
+         
+  if (scrollTop > stickyNavTop) {   
+      $('nav').addClass('sticky');  
+  } else {  
+      $('nav').removeClass('sticky');   
+  }  
+  };  
+    
+  stickyNav();  
+    
+  $(window).scroll(function() {  
+      stickyNav();  
+  });  
+  });  
+</script>
+
+
+</body>
+</html>

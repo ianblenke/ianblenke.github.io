@@ -4,7 +4,7 @@
   <title><![CDATA[Category: S3 | Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/blog/categories/s3/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-05T16:23:18-05:00</updated>
+  <updated>2014-11-07T21:26:58-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -46,7 +46,7 @@
 <li><a href="https://github.com/stackforge/swift3">swift3</a> as an S3 compatibility layer with swift on the backend</li>
 <li><a href="https://github.com/cloudfoundry-attic/vblob">vblob</a> a node.js based attic&#8217;ed project at CloudFoundry</li>
 <li><a href="https://github.com/mattjamieson/parkplace">parkplace</a> backended by bittorrent</li>
-<li><a href="[https://github.com/razerbeans/boardwalk]">boardwalk</a> backended by ruby, sinatra, and mongodb</li>
+<li><a href="https://github.com/razerbeans/boardwalk">boardwalk</a> backended by ruby, sinatra, and mongodb</li>
 </ul>
 
 

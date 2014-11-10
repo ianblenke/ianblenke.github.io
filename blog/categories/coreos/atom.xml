@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: Coreos | Ian Blenke - DevOps]]></title>
+  <link href="http://ianblenke.github.io/blog/categories/coreos/atom.xml" rel="self"/>
+  <link href="http://ianblenke.github.io/"/>
+  <updated>2014-11-10T12:12:05-05:00</updated>
+  <id>http://ianblenke.github.io/</id>
+  <author>
+    <name><![CDATA[Ian Blenke]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Immutable Infrastructure Persistence]]></title>
+    <link href="http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence/"/>
+    <updated>2014-10-18T12:55:14-04:00</updated>
+    <id>http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence</id>
+    <content type="html"><![CDATA[<p>Here is a link to my <a href="http://barcamptampabay.org/">Tampa Bay Barcamp 2014 presentation slides</a> for <a href="http://ian.blenke.com/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></p>
+]]></content>
+  </entry>
+  
+</feed>

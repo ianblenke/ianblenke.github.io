@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Docker | Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-09T22:15:18-05:00</updated>
+  <updated>2014-11-10T12:12:05-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -335,6 +335,15 @@ AWS_S3_PORT=$(docker run --rm coreos/etcd /bin/sh -c &quot;cd /go/src/github.com
 
 <p>Have fun!</p>
 
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Immutable Infrastructure Persistence]]></title>
+    <link href="http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence/"/>
+    <updated>2014-10-18T12:55:14-04:00</updated>
+    <id>http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence</id>
+    <content type="html"><![CDATA[<p>Here is a link to my <a href="http://barcamptampabay.org/">Tampa Bay Barcamp 2014 presentation slides</a> for <a href="http://ian.blenke.com/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></p>
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-09T22:15:18-05:00</updated>
+  <updated>2014-11-10T12:12:05-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -52,7 +52,7 @@
 
 <h2 id="step-3-login-to-the-console-as-chronos">Step 3: Login to the console as “chronos”</h2>
 
-<p>Using cntl-alt-F2, enter the username “chronos” at the login: prompt.</p>
+<p>Using cntl-alt-F2, enter the username “chronos” at the login: prompt. Hit return at the password: prompt (the default chronos password is an empty string).</p>
 
 <p>Note: You did not actually need to login to google via the UI interface.</p>
 
@@ -124,7 +124,7 @@ These appeared as the third and fourth bootable devices to SeaBIOS.</p>
 
 <p>This presented me with the Ubunu boot menu.</p>
 
-<p>Beyond this point, I installed Ubunto to the two external 1TB USB disks, with a primary boot partition (type “83”) on each for /boot as normal linux ext4, and a primary RAID partition (type “fd”) on each for the RAID1 mirror upon which I layered LVM with a volume group named “vg” and a “rootfs” and a “swapfs” logical volume. At the end, I installed the grub boot sector to /dev/sdb and /dev/sdc (the two external 1TB USB drives).</p>
+<p>Beyond this point, I installed Ubuntu to the two external 1TB USB disks, with a primary boot partition (type “83”) on each for /boot as normal linux ext4, and a primary RAID partition (type “fd”) on each for the RAID1 mirror upon which I layered LVM with a volume group named “vg” and a “rootfs” and a “swapfs” logical volume. At the end, I installed the grub boot sector to /dev/sdb and /dev/sdc (the two external 1TB USB drives).</p>
 
 <p>After removing the USB stick for the Ubuntu installation media, the SeaBIOS entries shifted by 1.</p>
 
@@ -693,6 +693,15 @@ sudo installer -pkg ~/Downloads/Boot2Docker-1.3.1.pkg -target /
 <p><img src="http://ianblenke.github.io/images/screenshots/boot2docker/step7-installed-boot2docker-app.png" width="1352" height="1006" title="Run boot2docker app" alt="Boot2docker app is in Applications" /></p>
 
 <p>Congrats. You now have boot2docker installed.</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Immutable Infrastructure Persistence]]></title>
+    <link href="http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence/"/>
+    <updated>2014-10-18T12:55:14-04:00</updated>
+    <id>http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence</id>
+    <content type="html"><![CDATA[<p>Here is a link to my <a href="http://barcamptampabay.org/">Tampa Bay Barcamp 2014 presentation slides</a> for <a href="http://ian.blenke.com/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></p>
 ]]></content>
   </entry>
   

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Orchestration | Ian Blenke - DevOps]]></title>
   <link href="http://ianblenke.github.io/blog/categories/orchestration/atom.xml" rel="self"/>
   <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-11T09:42:47-05:00</updated>
+  <updated>2014-11-11T23:57:44-05:00</updated>
   <id>http://ianblenke.github.io/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -24,9 +24,11 @@
 
 <ul>
   <li>Docker’s <a href="http://fig.sh">Fig</a></li>
+  <li><a href="https://github.com/dcm-oss/blockade">blockade</a></li>
   <li><a href="https://docs.vagrantup.com/v2/provisioning/docker.html">Vagrant</a></li>
   <li><a href="https://github.com/GoogleCloudPlatform/kubernetes">kubernetes</a></li>
   <li><a href="https://github.com/signalfuse/maestro-ng">maestro-ng</a></li>
+  <li><a href="https://github.com/michaelsauter/crane">crane</a></li>
   <li>Centurylink’s <a href="http://panamax.io/">Panamax</a></li>
   <li><a href="http://shipyard-project.com/">Shipyard</a></li>
   <li><a href="http://decking.io/">Decking</a></li>
@@ -36,10 +38,14 @@
   <li><a href="https://www.getchef.com/solutions/docker/">Chef</a></li>
   <li><a href="http://www.ansible.com/docker">Ansible</a></li>
   <li><a href="https://flynn.io/">Flynn</a></li>
-  <li><a href="http://tsuru.io/">Tsuru</a></li>
+  <li><a href="https://github.com/mailgun/shipper">Shipper</a></li>
+  <li><a href="octohost.io">Octohost</a></li>
+  <li><a href="http://tsuru.io/">Tsuru</a> with <a href="https://github.com/tsuru/docker-cluster">docker-cluster</a></li>
   <li><a href="https://clusterhq.com/">Flocker</a></li>
   <li><a href="https://github.com/CloudCredo/cloudfocker">CloudFocker</a></li>
+  <li><a href="http://www.cloudsoftcorp.com/blog/2014/06/clocker-creating-a-docker-cloud-with-apache-brooklyn/">Clocker</a> and <a href="http://brooklyn.incubator.apache.org">Apache Brooklyn</a></li>
   <li><a href="http://cloudfoundry.org">CloudFoundry</a>’s <a href="https://github.com/cf-platform-eng/docker-boshrelease">docker-boshrelease</a>/<a href="https://github.com/cloudfoundry-incubator/diego-release">diego</a></li>
+  <li>Mesosphere <a href="https://github.com/mesosphere/deimos">Deimos</a></li>
   <li><a href="http://deis.io">Deis</a> (a PaaS that can git push deploy containers using <a href="http://heroku.com">Heroku</a> buildpacks <em>or</em> a Dockerfile)</li>
 </ul>
 

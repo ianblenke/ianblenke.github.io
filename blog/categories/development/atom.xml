@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Development | Ian Blenke - DevOps]]></title>
-  <link href="http://ianblenke.github.io/blog/categories/development/atom.xml" rel="self"/>
-  <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-12T00:31:39-05:00</updated>
-  <id>http://ianblenke.github.io/</id>
+  <link href="http://ian.blenke.com/blog/categories/development/atom.xml" rel="self"/>
+  <link href="http://ian.blenke.com/"/>
+  <updated>2014-11-13T00:44:02-05:00</updated>
+  <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Fig-docker]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/07/fig-docker/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/07/fig-docker/"/>
     <updated>2014-11-07T19:20:06-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/07/fig-docker</id>
+    <id>http://ian.blenke.com/blog/2014/11/07/fig-docker</id>
     <content type="html"><![CDATA[<p>A common devops problem when developing <a href="http://docker.io">Docker</a> containers is managing the orchestration of multiple containers in a development environment.</p>
 
 <p>There are a number of orchestration harnesses for Docker available:</p>

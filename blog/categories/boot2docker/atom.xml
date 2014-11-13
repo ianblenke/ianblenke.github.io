@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Boot2docker | Ian Blenke - DevOps]]></title>
-  <link href="http://ianblenke.github.io/blog/categories/boot2docker/atom.xml" rel="self"/>
-  <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-12T00:31:39-05:00</updated>
-  <id>http://ianblenke.github.io/</id>
+  <link href="http://ian.blenke.com/blog/categories/boot2docker/atom.xml" rel="self"/>
+  <link href="http://ian.blenke.com/"/>
+  <updated>2014-11-13T00:44:02-05:00</updated>
+  <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Self-standing Ceph/deis-store Docker Containers]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/"/>
     <updated>2014-11-05T14:40:59-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers</id>
+    <id>http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers</id>
     <content type="html"><![CDATA[<p>A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.</p>
 
 <p>As Docker is meant for immutable infrastructure, this poses somewhat of a challenge for production deployments. Rather than tackle that subject here, we’ll revisit persistence on immutable infrastructure in a production capacity in a future blog post.</p>
@@ -179,9 +179,9 @@ AWS_S3_PORT=$(docker run --rm coreos/etcd /bin/sh -c &quot;cd /go/src/github.com
   
   <entry>
     <title type="html"><![CDATA[Using Boot2Docker]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/04/using-boot2docker/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/04/using-boot2docker/"/>
     <updated>2014-11-04T23:13:25-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/04/using-boot2docker</id>
+    <id>http://ian.blenke.com/blog/2014/11/04/using-boot2docker</id>
     <content type="html"><![CDATA[<h2 id="boot2docker-command-line">Boot2Docker command-line</h2>
 
 <p>Preface: the <a href="https://github.com/boot2docker/boot2docker">boot2docker README</a> is a great place to discover the below commands in more detail.</p>
@@ -262,9 +262,9 @@ Storage Driver: aufs
   
   <entry>
     <title type="html"><![CDATA[Installing Boot2Docker]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/04/installing-boot2docker/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/04/installing-boot2docker/"/>
     <updated>2014-11-04T22:41:53-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/04/installing-boot2docker</id>
+    <id>http://ian.blenke.com/blog/2014/11/04/installing-boot2docker</id>
     <content type="html"><![CDATA[<p>Starting with a new team of developers, it helps to document the bootstrapping steps to a development environment.</p>
 
 <p>Rather than try and use a convergence tool like Chef, Puppet, Ansible, or SALT, this time the environment will embrace Docker.</p>

@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Docker Rspec TDD - Ian Blenke - DevOps</title>
+  <title>Category: Devstack - Ian Blenke - DevOps</title>
   <meta name="author" content="Ian Blenke">
 
   
-  <meta name="description" content="A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other &hellip;">
+  <meta name="description" content="Category: devstack">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd">
+  <link rel="canonical" href="http://ian.blenke.com/blog/categories/devstack">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Ian Blenke - DevOps" type="application/atom+xml">
@@ -77,176 +77,36 @@
   <div id="main">
     <div id="content">
       <div>
-<article class="hentry" role="article">
+<article role="article">
   
   <header>
-    
-      <h1 class="entry-title">Docker Rspec TDD</h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-Nov 10, 2014
-        
-           | <a href="#disqus_thread"
-             data-disqus-identifier="http://ian.blenke.com">Comments</a>
-        
-      </p>
+    <h1 class="entry-title">Category: Devstack</h1>
     
   </header>
-
-
-<div class="entry-content"><p>A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other important interfaces.</p>
-
-<p>Test-Driven Design should drive a developer toward implementation details, not the other way around.</p>
-
-<p>A devops without tests is a sad devops indeed.</p>
-
-<p>Working toward a docker based development environment, my first thoughts were toward <a href="http://serverspec.org/">Serverspec</a> by <a href="https://github.com/mizzy">Gosuke Miayshita</a>, as it is entirely framework agnostic. Gosuke gave an excellent presentation at ChefConf this year re-inforcing that Serverspec is <em>not</em> a chef centric tool, and works quite well in conjunction with other configuration management tools.</p>
-
-<p>Researching Serverspec and docker a bit more, <a href="https://github.com/tcnksm">Taichi Nakashima</a> based his <a href="https://github.com/tcnksm-sample/docker-rspec">TDD of Dockerfile by RSpec on OS/X</a> using ssh.</p>
-
-<p>With Docker 1.3 and later, there is a “docker exec” interactive docker API for allowing live sessions on processes spawned in the same process namespace as a running container, effectively allowing external access into a running docker container using only the docker API.</p>
-
-<p><a href="http://blog.wercker.com/2013/12/23/Test-driven-development-for-docker.html">PIETER JOOST VAN DE SANDE</a> posted about using the docker-api to accomplish the goal of testing a Dockerfile. His work is based on the <a href="https://rubygems.org/gems/docker-api">docker-api</a> gem (github <a href="https://github.com/swipely/docker-api">swipely/docker-api</a>).</p>
-
-<p>Looking into the docker-api source, there is no support yet for docker 1.3’s exec API interface to run Serverspec tests against the contents of a running docker container.</p>
-
-<p>Attempting even the most basic docker API calls with docker-api, <a href="https://github.com/swipely/docker-api/issues/202">issue 202</a> made it apparent that TLS support for boot2docker would need to be addressed first.</p>
-
-<p>Here is my functional <code>spec_helper.rb</code> with the fixes necessary to use docker-api without modifications:</p>
-
-<div><script src="https://gist.github.com/5335483e4021954d815f.js"></script>
-<noscript><pre><code>require &quot;docker&quot;
-
-docker_host = ENV[&#39;DOCKER_HOST&#39;].dup
-
-if(ENV[&#39;DOCKER_TLS_VERIFY&#39;])
-  cert_path = File.expand_path ENV[&#39;DOCKER_CERT_PATH&#39;]
-  Docker.options = {
-    client_cert: File.join(cert_path, &#39;cert.pem&#39;),
-    client_key: File.join(cert_path, &#39;key.pem&#39;)
-  }
-  Excon.defaults[:ssl_ca_file] = File.join(cert_path, &#39;ca.pem&#39;)
-  docker_host.gsub!(/^tcp/,&#39;https&#39;)
-end
-
-Docker.url = docker_host</code></pre></noscript></div>
-
-<p>Following this, I can drive the generation of a Dockerfile with a spec:</p>
-
-<div><script src="https://gist.github.com/261e6fe930c922202151.js"></script>
-<noscript><pre><code>require &quot;spec_helper&quot;
-
-describe &quot;dockerfile built my_app image&quot; do
-  before(:all) do
-    @image = Docker::Image.all(:all =&gt; true).find { |image|
-      Docker::Util.parse_repo_tag( image.info[&#39;RepoTags&#39;].first ).first == &#39;my_app&#39;
-    }
-    p @image.json[&quot;Env&quot;]
-  end
-
-  it &quot;should exist&quot; do
-    expect(@image).not_to be_nil
-  end
-
-  it &quot;should have CMD&quot; do
-    expect(@image.json[&quot;Config&quot;][&quot;Cmd&quot;]).to include(&quot;/run.sh&quot;)
-  end
-
-  it &quot;should expose the default port&quot; do
-    expect(@image.json[&quot;Config&quot;][&quot;ExposedPorts&quot;].has_key?(&quot;3000/tcp&quot;)).to be_truthy
-  end
-
-  it &quot;should have environmental variable&quot; do
-    expect(@image.json[&quot;Config&quot;][&quot;Env&quot;]).to include(&quot;HOME=/usr/src/app&quot;)
-  end
-end</code></pre></noscript></div>
-
-<p>This drives me iteratively to write a Dockerfile that looks like:</p>
-
-<div><script src="https://gist.github.com/ef7150420cbd328d5e41.js"></script>
-<noscript><pre><code>FROM rails:onbuild
-ENV HOME /usr/src/app
-ADD docker/run.sh /run.sh
-RUN chmod 755 /run.sh
-EXPOSE 3000
-CMD /run.sh</code></pre></noscript></div>
-
-<p>Next step: extend docker-api to support exec for serverspec based testing of actual docker image contents.</p>
-
-<p>Sláinte!</p>
-
-</div>
-
-
-  <footer>
-    <p class="meta">
-      
   
-
-<span class="byline author vcard">Posted by <span class="fn">Ian Blenke</span></span>
-
-      
-
-
-
-
-
+  <div id="blog-archives" class="category">
 
 
 
   
+  <h2>2014</h2>
+
+<article>
+  
+<h1><a href="/blog/2014/11/09/openstack-on-a-chromebox/">OpenStack on a Chromebox</a></h1>
+<time datetime="2014-11-09T19:02:40-05:00" pubdate><span class='month'>Nov</span> <span class='day'>09</span> <span class='year'>2014</span></time>
+
+<footer>
+  <span class="categories">posted in <a class='category' href='/blog/categories/chromebox/'>chromebox</a>, <a class='category' href='/blog/categories/devstack/'>devstack</a>, <a class='category' href='/blog/categories/openstack/'>openstack</a>, <a class='category' href='/blog/categories/seabios/'>seabios</a>, <a class='category' href='/blog/categories/ubuntu/'>ubuntu</a></span>
+</footer>
 
 
-<time datetime="2014-11-10T14:38:37-05:00" pubdate data-updated="true">Nov 10, 2014</time>
-      
-
-<span class="categories">
-  
-    <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/rspec/'>rspec</a>, <a class='category' href='/blog/categories/tdd/'>tdd</a>
-  
-</span>
-
-
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/" data-via="ianblenke" data-counturl="http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/" >Tweet</a>
-  
-  
-  <div class="g-plusone" data-size="medium"></div>
-  
-  
-</div>
-
-    
-    <p class="meta">
-      
-        <a class="basic-alignment left" href="/blog/2014/11/09/openstack-on-a-chromebox/" title="Previous Post: OpenStack on a Chromebox">&laquo; OpenStack on a Chromebox</a>
-      
-      
-    </p>
-  </footer>
 </article>
 
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
-  </section>
+
+  
+</article>
 
 </div>
 
@@ -360,10 +220,7 @@ CMD /run.sh</code></pre></noscript></div>
       var disqus_shortname = 'ianblenke';
       
         
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/';
-        var disqus_url = 'http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/';
-        var disqus_script = 'embed.js';
+        var disqus_script = 'count.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

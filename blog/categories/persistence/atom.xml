@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Persistence | Ian Blenke - DevOps]]></title>
-  <link href="http://ianblenke.github.io/blog/categories/persistence/atom.xml" rel="self"/>
-  <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-12T00:31:39-05:00</updated>
-  <id>http://ianblenke.github.io/</id>
+  <link href="http://ian.blenke.com/blog/categories/persistence/atom.xml" rel="self"/>
+  <link href="http://ian.blenke.com/"/>
+  <updated>2014-11-13T00:44:02-05:00</updated>
+  <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Immutable Infrastructure Persistence]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence/"/>
+    <link href="http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence/"/>
     <updated>2014-10-18T12:55:14-04:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence</id>
+    <id>http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence</id>
     <content type="html"><![CDATA[<p>Here is a link to my <a href="http://barcamptampabay.org/">Tampa Bay Barcamp 2014 presentation slides</a> for <a href="http://ian.blenke.com/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></p>
 ]]></content>
   </entry>

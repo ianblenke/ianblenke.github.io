@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Aws | Ian Blenke - DevOps]]></title>
-  <link href="http://ianblenke.github.io/blog/categories/aws/atom.xml" rel="self"/>
-  <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-12T00:31:39-05:00</updated>
-  <id>http://ianblenke.github.io/</id>
+  <link href="http://ian.blenke.com/blog/categories/aws/atom.xml" rel="self"/>
+  <link href="http://ian.blenke.com/"/>
+  <updated>2014-11-13T00:44:02-05:00</updated>
+  <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Self-standing Ceph/deis-store Docker Containers]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/"/>
     <updated>2014-11-05T14:40:59-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers</id>
+    <id>http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers</id>
     <content type="html"><![CDATA[<p>A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.</p>
 
 <p>As Docker is meant for immutable infrastructure, this poses somewhat of a challenge for production deployments. Rather than tackle that subject here, we’ll revisit persistence on immutable infrastructure in a production capacity in a future blog post.</p>

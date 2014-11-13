@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Docker | Ian Blenke - DevOps]]></title>
-  <link href="http://ianblenke.github.io/blog/categories/docker/atom.xml" rel="self"/>
-  <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-12T00:31:39-05:00</updated>
-  <id>http://ianblenke.github.io/</id>
+  <link href="http://ian.blenke.com/blog/categories/docker/atom.xml" rel="self"/>
+  <link href="http://ian.blenke.com/"/>
+  <updated>2014-11-13T00:44:02-05:00</updated>
+  <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Docker Rspec TDD]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/10/docker-rspec-tdd/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/"/>
     <updated>2014-11-10T14:38:37-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/10/docker-rspec-tdd</id>
+    <id>http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd</id>
     <content type="html"><![CDATA[<p>A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other important interfaces.</p>
 
 <p>Test-Driven Design should drive a developer toward implementation details, not the other way around.</p>
@@ -107,9 +107,9 @@ CMD /run.sh</code></pre></noscript></div>
   
   <entry>
     <title type="html"><![CDATA[Fig-docker]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/07/fig-docker/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/07/fig-docker/"/>
     <updated>2014-11-07T19:20:06-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/07/fig-docker</id>
+    <id>http://ian.blenke.com/blog/2014/11/07/fig-docker</id>
     <content type="html"><![CDATA[<p>A common devops problem when developing <a href="http://docker.io">Docker</a> containers is managing the orchestration of multiple containers in a development environment.</p>
 
 <p>There are a number of orchestration harnesses for Docker available:</p>
@@ -274,9 +274,9 @@ docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs
   
   <entry>
     <title type="html"><![CDATA[Self-standing Ceph/deis-store Docker Containers]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/"/>
     <updated>2014-11-05T14:40:59-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers</id>
+    <id>http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers</id>
     <content type="html"><![CDATA[<p>A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.</p>
 
 <p>As Docker is meant for immutable infrastructure, this poses somewhat of a challenge for production deployments. Rather than tackle that subject here, we’ll revisit persistence on immutable infrastructure in a production capacity in a future blog post.</p>
@@ -438,9 +438,9 @@ AWS_S3_PORT=$(docker run --rm coreos/etcd /bin/sh -c &quot;cd /go/src/github.com
   
   <entry>
     <title type="html"><![CDATA[Immutable Infrastructure Persistence]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence/"/>
+    <link href="http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence/"/>
     <updated>2014-10-18T12:55:14-04:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/10/18/immutable-infrastructure-persistence</id>
+    <id>http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence</id>
     <content type="html"><![CDATA[<p>Here is a link to my <a href="http://barcamptampabay.org/">Tampa Bay Barcamp 2014 presentation slides</a> for <a href="http://ian.blenke.com/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></p>
 ]]></content>
   </entry>

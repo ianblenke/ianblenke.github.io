@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: Rspec | Ian Blenke - DevOps]]></title>
-  <link href="http://ianblenke.github.io/blog/categories/rspec/atom.xml" rel="self"/>
-  <link href="http://ianblenke.github.io/"/>
-  <updated>2014-11-12T00:31:39-05:00</updated>
-  <id>http://ianblenke.github.io/</id>
+  <link href="http://ian.blenke.com/blog/categories/rspec/atom.xml" rel="self"/>
+  <link href="http://ian.blenke.com/"/>
+  <updated>2014-11-13T00:44:02-05:00</updated>
+  <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Docker Rspec TDD]]></title>
-    <link href="http://ianblenke.github.io/blog/2014/11/10/docker-rspec-tdd/"/>
+    <link href="http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/"/>
     <updated>2014-11-10T14:38:37-05:00</updated>
-    <id>http://ianblenke.github.io/blog/2014/11/10/docker-rspec-tdd</id>
+    <id>http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd</id>
     <content type="html"><![CDATA[<p>A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other important interfaces.</p>
 
 <p>Test-Driven Design should drive a developer toward implementation details, not the other way around.</p>

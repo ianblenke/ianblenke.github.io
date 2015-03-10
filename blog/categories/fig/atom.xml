@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Fig | Ian Blenke - DevOps]]></title>
   <link href="http://ian.blenke.com/blog/categories/fig/atom.xml" rel="self"/>
   <link href="http://ian.blenke.com/"/>
-  <updated>2014-11-13T00:44:02-05:00</updated>
+  <updated>2015-03-10T17:26:08-04:00</updated>
   <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -39,7 +39,7 @@
   <li><a href="http://www.ansible.com/docker">Ansible</a></li>
   <li><a href="https://flynn.io/">Flynn</a></li>
   <li><a href="https://github.com/mailgun/shipper">Shipper</a></li>
-  <li><a href="octohost.io">Octohost</a></li>
+  <li><a href="http://octohost.io">Octohost</a></li>
   <li><a href="http://tsuru.io/">Tsuru</a> with <a href="https://github.com/tsuru/docker-cluster">docker-cluster</a></li>
   <li><a href="https://clusterhq.com/">Flocker</a></li>
   <li><a href="https://github.com/CloudCredo/cloudfocker">CloudFocker</a></li>
@@ -47,6 +47,15 @@
   <li><a href="http://cloudfoundry.org">CloudFoundry</a>’s <a href="https://github.com/cf-platform-eng/docker-boshrelease">docker-boshrelease</a>/<a href="https://github.com/cloudfoundry-incubator/diego-release">diego</a></li>
   <li>Mesosphere <a href="https://github.com/mesosphere/deimos">Deimos</a></li>
   <li><a href="http://deis.io">Deis</a> (a PaaS that can git push deploy containers using <a href="http://heroku.com">Heroku</a> buildpacks <em>or</em> a Dockerfile)</li>
+</ul>
+
+<p>There are a number of hosted service offerings now as well:</p>
+
+<ul>
+  <li><a href="http://aws.amazon.com/ecs">Amazon ECS</a></li>
+  <li><a href="http://www.qualisystems.com/cloudshell-6-0-sneak-peek/">CloudShell</a></li>
+  <li><a href="https://elasticbox.com/how-it-works/">ElasticBox</a></li>
+  <li>Aw, heck, just check the <a href="http://www.mindmeister.com/389671722/docker-ecosystem">docker ecosystem mindmap</a></li>
 </ul>
 
 <p>There are also RAFT/GOSSIP clustering solutions like:</p>

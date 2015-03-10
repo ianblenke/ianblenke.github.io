@@ -128,7 +128,7 @@ Nov 7th, 2014
   <li><a href="http://www.ansible.com/docker">Ansible</a></li>
   <li><a href="https://flynn.io/">Flynn</a></li>
   <li><a href="https://github.com/mailgun/shipper">Shipper</a></li>
-  <li><a href="octohost.io">Octohost</a></li>
+  <li><a href="http://octohost.io">Octohost</a></li>
   <li><a href="http://tsuru.io/">Tsuru</a> with <a href="https://github.com/tsuru/docker-cluster">docker-cluster</a></li>
   <li><a href="https://clusterhq.com/">Flocker</a></li>
   <li><a href="https://github.com/CloudCredo/cloudfocker">CloudFocker</a></li>
@@ -136,6 +136,15 @@ Nov 7th, 2014
   <li><a href="http://cloudfoundry.org">CloudFoundry</a>’s <a href="https://github.com/cf-platform-eng/docker-boshrelease">docker-boshrelease</a>/<a href="https://github.com/cloudfoundry-incubator/diego-release">diego</a></li>
   <li>Mesosphere <a href="https://github.com/mesosphere/deimos">Deimos</a></li>
   <li><a href="http://deis.io">Deis</a> (a PaaS that can git push deploy containers using <a href="http://heroku.com">Heroku</a> buildpacks <em>or</em> a Dockerfile)</li>
+</ul>
+
+<p>There are a number of hosted service offerings now as well:</p>
+
+<ul>
+  <li><a href="http://aws.amazon.com/ecs">Amazon ECS</a></li>
+  <li><a href="http://www.qualisystems.com/cloudshell-6-0-sneak-peek/">CloudShell</a></li>
+  <li><a href="https://elasticbox.com/how-it-works/">ElasticBox</a></li>
+  <li>Aw, heck, just check the <a href="http://www.mindmeister.com/389671722/docker-ecosystem">docker ecosystem mindmap</a></li>
 </ul>
 
 <p>There are also RAFT/GOSSIP clustering solutions like:</p>
@@ -351,6 +360,10 @@ docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/2015/03/10/deploying-amazon-ecs-on-coreos/">Deploying Amazon ECS on CoreOS</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2014/11/10/docker-rspec-tdd/">Docker Rspec TDD</a>
       </li>
     
@@ -364,10 +377,6 @@ docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs
     
       <li class="post">
         <a href="/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/">Self-standing Ceph/deis-store Docker Containers</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/11/04/using-boot2docker/">Using Boot2Docker</a>
       </li>
     
   </ul>
@@ -424,7 +433,7 @@ docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - Ian Blenke -
+  Copyright &copy; 2015 - Ian Blenke -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>.
   <span class="credit">Get the source for this blog at <a href="https://github.com/ianblenke/blog/tree/source">github.com/ianblenke/blog/tree/source<a/></span>
 </p>

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Coreos | Ian Blenke - DevOps]]></title>
-  <link href="http://ian.blenke.com/blog/categories/coreos/atom.xml" rel="self"/>
+  <title><![CDATA[Category: Ecs | Ian Blenke - DevOps]]></title>
+  <link href="http://ian.blenke.com/blog/categories/ecs/atom.xml" rel="self"/>
   <link href="http://ian.blenke.com/"/>
   <updated>2015-03-10T17:26:08-04:00</updated>
   <id>http://ian.blenke.com/</id>
@@ -101,15 +101,6 @@ For this, you may want to take a look at the <a href="https://s3.amazonaws.com/a
 
 <p>Next steps: Deploy Mesos using the <a href="https://github.com/awslabs/ecs-mesos-scheduler-driver">ecs-mesos-scheduler-driver</a>, as <a href="http://jpetazzo.github.io/2015/01/14/amazon-docker-ecs-ec2-container-service/">summarized by jpetazzo</a></p>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Immutable Infrastructure Persistence]]></title>
-    <link href="http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence/"/>
-    <updated>2014-10-18T12:55:14-04:00</updated>
-    <id>http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence</id>
-    <content type="html"><![CDATA[<p>Here is a link to my <a href="http://barcamptampabay.org/">Tampa Bay Barcamp 2014 presentation slides</a> for <a href="http://ian.blenke.com/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></p>
 ]]></content>
   </entry>
   

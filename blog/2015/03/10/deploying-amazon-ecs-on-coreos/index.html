@@ -5,11 +5,11 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Using Boot2Docker - Ian Blenke - DevOps</title>
+  <title>Deploying Amazon ECS on CoreOS - Ian Blenke - DevOps</title>
   <meta name="author" content="Ian Blenke">
 
   
-  <meta name="description" content="Boot2Docker command-line Preface: the boot2docker README is a great place to discover the below commands in more detail. Now that we have Boot2Docker &hellip;">
+  <meta name="description" content="First, read the CoreOS page on ECS: https://coreos.com/docs/running-coreos/cloud-providers/ecs/ We will need the aws commandline tool: which aws || &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://ian.blenke.com/blog/2014/11/04/using-boot2docker">
+  <link rel="canonical" href="http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Ian Blenke - DevOps" type="application/atom+xml">
@@ -81,7 +81,7 @@
   
   <header>
     
-      <h1 class="entry-title">Using Boot2Docker</h1>
+      <h1 class="entry-title">Deploying Amazon ECS on CoreOS</h1>
     
     
       <p class="meta">
@@ -97,7 +97,7 @@
   
 
 
-Nov 4th, 2014
+Mar 3, 2014
         
            | <a href="#disqus_thread"
              data-disqus-identifier="http://ian.blenke.com">Comments</a>
@@ -107,80 +107,88 @@ Nov 4th, 2014
   </header>
 
 
-<div class="entry-content"><h2 id="boot2docker-command-line">Boot2Docker command-line</h2>
+<div class="entry-content"><p>First, read the CoreOS page on ECS:</p>
 
-<p>Preface: the <a href="https://github.com/boot2docker/boot2docker">boot2docker README</a> is a great place to discover the below commands in more detail.</p>
+<p>https://coreos.com/docs/running-coreos/cloud-providers/ecs/</p>
 
-<p>Now that we have Boot2Docker installed, we need to initialize a VM instance</p>
+<p>We will need the aws commandline tool:</p>
 
-<pre><code>boot2docker init
+<pre><code>which aws || pip install awscli
 </code></pre>
 
-<p>This merely defines the default boot2docker VM, it does not start it. To do that, we need to bring it “up”</p>
+<p>Make sure you have your <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> defined in your shell environment.</p>
 
-<pre><code>boot2docker up
+<p>Create the ECS cluster:</p>
+
+<pre><code>aws ecs create-cluster --cluster-name Cosmos-Dev
+{
+    "cluster": {
+        "clusterName": "Cosmos-Dev",
+        "status": "ACTIVE",
+        "clusterArn": "arn:aws:ecs:us-east-1:123456789012:cluster/My-ECS-Cluster"
+    }
+}
 </code></pre>
 
-<p>When run, it looks something like this:</p>
+<p>Install the global fleet unit for amazon-ecs-agent.service:</p>
 
-<pre><code>icbcfmbp:~ icblenke$ boot2docker up
-Waiting for VM and Docker daemon to start...
-..........ooo
-Started.
-Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/ca.pem
-Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/cert.pem
-Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/key.pem
-
-To connect the Docker client to the Docker daemon, please set:
-    export DOCKER_CERT_PATH=/Users/icblenke/.boot2docker/certs/boot2docker-vm
-    export DOCKER_TLS_VERIFY=1
-    export DOCKER_HOST=tcp://192.168.59.103:2376
-
-icbcfmbp:~ icblenke$
+<pre><code>cat &lt;&lt;EOF &gt; amazon-ecs-agent.service
+[Unit]
+Description=Amazon ECS Agent
+After=docker.service
+Requires=docker.service
+[Service]
+Environment=ECS_CLUSTER=My-ECS-Cluster
+Environment=ECS_LOGLEVEL=warn
+Environment=AWS_REGION=us-east-1
+ExecStartPre=-/usr/bin/docker kill ecs-agent
+ExecStartPre=-/usr/bin/docker rm ecs-agent
+ExecStartPre=/usr/bin/docker pull amazon/amazon-ecs-agent
+ExecStart=/usr/bin/docker run --name ecs-agent \
+    --env=ECS_CLUSTER=${ECS_CLUSTER}\
+    --env=ECS_LOGLEVEL=${ECS_LOGLEVEL} \
+    --publish=127.0.0.1:51678:51678 \
+    --volume=/var/run/docker.sock:/var/run/docker.sock \
+    amazon/amazon-ecs-agent
+ExecStop=/usr/bin/docker stop ecs-agent
+[X-Fleet]
+Global=true
+EOF
+fleetctl start amazon-ecs-agent.service
 </code></pre>
 
-<p>This is all fine and dandy, but that shell didn’t actually source those variables. To do that we use boot2docker shellinit:</p>
+<p>This registers a ContainerInstance to the <code>My-ECS-Cluster</code> in region <code>us-east-1</code>.</p>
 
-<pre><code>eval $(boot2docker shellinit)
+<p>Note: this is using the EC2 instance’s instance profile IAM credentials. You will want to make sure you’ve assigned an instance profile with a Role that has “ecs:*” access.
+For this, you may want to take a look at the <a href="https://s3.amazonaws.com/amazon-ecs-cloudformation/Amazon_ECS_Quickstart.template">Amazon ECS Quickstart CloudFormation template</a>.</p>
+
+<p>Now from a CoreOS host, we can query locally to enumerate the running ContainerInstances in our fleet:</p>
+
+<pre><code>fleetctl list-machines -fields=ip -no-legend | while read ip ; do \
+    echo $ip $(ssh -n $ip curl -s http://169.254.169.254/latest/meta-data/instance-id) \
+    $(ssh -n $ip curl -s http://localhost:51678/v1/metadata | \
+      docker run -i realguess/jq jq .ContainerInstanceArn) ; \
+  done
 </code></pre>
 
-<p>Now the shell has those variables exported for the running boot2docker VM.</p>
+<p>Which returns something like:</p>
 
-<p>The persistence of the boot2docker VM lasts only until we run a boot2docker destroy</p>
-
-<pre><code>boot2docker destroy
+<pre><code>10.113.0.23 i-12345678 "arn:aws:ecs:us-east-1:123456789012:container-instance/674140ae-1234-4321-1234-4abf7878caba"
+10.113.1.42 i-23456789 "arn:aws:ecs:us-east-1:123456789012:container-instance/c3506771-1234-4321-1234-1f1b1783c924"
+10.113.2.66 i-34567891 "arn:aws:ecs:us-east-1:123456789012:container-instance/75d30c64-1234-4321-1234-8be8edeec9c6"
 </code></pre>
 
-<p>After doing this, there is no longer a VM defined. We would need to go back to the boot2docker init step above and repeat.</p>
+<p>And we can query ECS and get the same:</p>
 
-<h2 id="docker-command-line">Docker command-line</h2>
-
-<p>From this point forward, we use the docker command to interact with the boot2docker VM as if we are on a linux docker host.</p>
-
-<p>The docker command is just a compiled go application that makes RESTful calls to the docker daemon inside the linux VM.</p>
-
-<pre><code>bash-3.2$ docker info
-Containers: 0
-Images: 0
-Storage Driver: aufs
- Root Dir: /mnt/sda1/var/lib/docker/aufs
-  Dirs: 0
-  Execution Driver: native-0.2
-  Kernel Version: 3.16.4-tinycore64
-  Operating System: Boot2Docker 1.3.1 (TCL 5.4); master : 9a31a68 - Fri Oct 31 03:14:34 UTC 2014
-  Debug mode (server): true
-  Debug mode (client): false
-  Fds: 10
-  Goroutines: 11
-  EventsListeners: 0
-  Init Path: /usr/local/bin/docker
+<pre><code>$ aws ecs list-container-instances --cluster My-ECS-Cluster | grep arn | cut -d'"' -f2 | \
+  xargs -L1 -I% aws ecs describe-container-instances --cluster My-ECS-Cluster --container-instance % | \
+  jq '.containerInstances[] | .ec2InstanceId + " " + .containerInstanceArn'
+"i-12345678 arn:aws:ecs:us-east-1:123456789012:container-instance/674140ae-1234-4321-1234-4abf7878caba"
+"i-23456789 arn:aws:ecs:us-east-1:123456789012:container-instance/c3506771-1234-4321-1234-1f1b1783c924"
+"i-34567891 arn:aws:ecs:us-east-1:123456789012:container-instance/75d30c64-1234-4321-1234-8be8edeec9c6"
 </code></pre>
 
-<p>This holds true for both OS/X and Windows. </p>
-
-<p>The boot2docker facade is just a handy wrapper to prepare the guest linux host VM for the docker daemin and local docker command-line client for your development host OS environment.</p>
-
-<p>And now you have a starting point for exploring <a href="http://docker.io">Docker</a>!</p>
+<p>Next steps: Deploy Mesos using the <a href="https://github.com/awslabs/ecs-mesos-scheduler-driver">ecs-mesos-scheduler-driver</a>, as <a href="http://jpetazzo.github.io/2015/01/14/amazon-docker-ecs-ec2-container-service/">summarized by jpetazzo</a></p>
 
 </div>
 
@@ -204,12 +212,12 @@ Storage Driver: aufs
   
 
 
-<time datetime="2014-11-04T23:13:25-05:00" pubdate data-updated="true">Nov 4th, 2014</time>
+<time datetime="2015-03-10T16:38:33-04:00" pubdate data-updated="true">Mar 3, 2014</time>
       
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/boot2docker/'>boot2docker</a>
+    <a class='category' href='/blog/categories/aws/'>aws</a>, <a class='category' href='/blog/categories/coreos/'>coreos</a>, <a class='category' href='/blog/categories/docker/'>docker</a>, <a class='category' href='/blog/categories/ecs/'>ecs</a>
   
 </span>
 
@@ -218,7 +226,7 @@ Storage Driver: aufs
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://ian.blenke.com/blog/2014/11/04/using-boot2docker/" data-via="ianblenke" data-counturl="http://ian.blenke.com/blog/2014/11/04/using-boot2docker/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos/" data-via="ianblenke" data-counturl="http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos/" >Tweet</a>
   
   
   <div class="g-plusone" data-size="medium"></div>
@@ -229,10 +237,8 @@ Storage Driver: aufs
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2014/11/04/installing-boot2docker/" title="Previous Post: Installing Boot2Docker">&laquo; Installing Boot2Docker</a>
+        <a class="basic-alignment left" href="/blog/2014/11/10/docker-rspec-tdd/" title="Previous Post: Docker rspec TDD">&laquo; Docker rspec TDD</a>
       
-      
-        <a class="basic-alignment right" href="/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/" title="Next Post: Self-standing Ceph/deis-store docker containers">Self-standing Ceph/deis-store docker containers &raquo;</a>
       
     </p>
   </footer>
@@ -357,8 +363,8 @@ Storage Driver: aufs
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://ian.blenke.com/blog/2014/11/04/using-boot2docker/';
-        var disqus_url = 'http://ian.blenke.com/blog/2014/11/04/using-boot2docker/';
+        var disqus_identifier = 'http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos/';
+        var disqus_url = 'http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos/';
         var disqus_script = 'embed.js';
       
     (function () {

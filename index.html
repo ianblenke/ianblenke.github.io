@@ -1,24 +1,116 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Ian Blenke - DevOps]]></title>
-  <link href="http://ian.blenke.com/atom.xml" rel="self"/>
-  <link href="http://ian.blenke.com/"/>
-  <updated>2015-03-10T18:15:21-04:00</updated>
-  <id>http://ian.blenke.com/</id>
-  <author>
-    <name><![CDATA[Ian Blenke]]></name>
-    
-  </author>
-  <generator uri="http://octopress.org/">Octopress</generator>
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Ian Blenke - DevOps</title>
+  <meta name="author" content="Ian Blenke">
 
   
-  <entry>
-    <title type="html"><![CDATA[Deploying Amazon ECS on CoreOS]]></title>
-    <link href="http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos/"/>
-    <updated>2015-03-10T16:38:33-04:00</updated>
-    <id>http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos</id>
-    <content type="html"><![CDATA[<p>Today, I stumbled on the official <a href="https://coreos.com/docs/running-coreos/cloud-providers/ecs/">CoreOS page on ECS</a>.</p>
+  <meta name="description" content="Today, I stumbled on the official CoreOS page on ECS. I’ve been putting off ECS for a while, it was time to give it a try. To create the ECS cluster &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://ian.blenke.com">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Ian Blenke - DevOps" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href="http://fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+<link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+<link href='http://fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-53218787-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  
+      <img style="float: left; margin: 0px 15px 15px 0px;" src="http://www.gravatar.com/avatar/b0efd275b44b660f817003f2baca7ea2" alt="Gravatar of Ian Blenke " title="Gravatar of Ian Blenke" />
+  
+  <h1><a href="/">Ian Blenke - DevOps</a></h1>
+  
+    <h2>A 6502 hack living in a cloud orchestration world</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  
+  
+</ul>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="https://github.com/ianblenke">GitHub</a></li>
+  <li><a href="https://registry.hub.docker.com/repos/ianblenke/">DockerHub</a></li>
+  <li><a href="https://twitter.com/ianblenke">Twitter</a></li>
+  <li><a href="https://www.linkedin.com/in/ianblenke/">LinkedIn</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div class="blog-index">
+  
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2015/03/10/deploying-amazon-ecs-on-coreos/">Deploying Amazon ECS on CoreOS</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+Mar 3, 2014
+        
+           | <a href="/blog/2015/03/10/deploying-amazon-ecs-on-coreos/#disqus_thread"
+             data-disqus-identifier="http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Today, I stumbled on the official <a href="https://coreos.com/docs/running-coreos/cloud-providers/ecs/">CoreOS page on ECS</a>.</p>
 
 <p>I’ve been putting off ECS for a while, it was time to give it a try.</p>
 
@@ -118,15 +210,45 @@ Fleet’s scheduler is also currently a bit weak in that it schedules new units 
 
 <p>My next steps: Deploy Mesos using the <a href="https://github.com/awslabs/ecs-mesos-scheduler-driver">ecs-mesos-scheduler-driver</a>, as <a href="http://jpetazzo.github.io/2015/01/14/amazon-docker-ecs-ec2-container-service/">summarized by jpetazzo</a></p>
 
-]]></content>
-  </entry>
+</div>
   
-  <entry>
-    <title type="html"><![CDATA[Docker Rspec TDD]]></title>
-    <link href="http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/"/>
-    <updated>2014-11-10T14:38:37-05:00</updated>
-    <id>http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd</id>
-    <content type="html"><![CDATA[<p>A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other important interfaces.</p>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/10/docker-rspec-tdd/">Docker Rspec TDD</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+Nov 10, 2014
+        
+           | <a href="/blog/2014/11/10/docker-rspec-tdd/#disqus_thread"
+             data-disqus-identifier="http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other important interfaces.</p>
 
 <p>Test-Driven Design should drive a developer toward implementation details, not the other way around.</p>
 
@@ -207,15 +329,45 @@ CMD /run.sh</code></pre></noscript></div>
 
 <p>Sláinte!</p>
 
-]]></content>
-  </entry>
+</div>
   
-  <entry>
-    <title type="html"><![CDATA[OpenStack on a Chromebox]]></title>
-    <link href="http://ian.blenke.com/blog/2014/11/09/openstack-on-a-chromebox/"/>
-    <updated>2014-11-09T19:02:40-05:00</updated>
-    <id>http://ian.blenke.com/blog/2014/11/09/openstack-on-a-chromebox</id>
-    <content type="html"><![CDATA[<p>Saturday’s project was installing OpenStack on a ChromeBox.</p>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/09/openstack-on-a-chromebox/">OpenStack on a Chromebox</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+Nov 9th, 2014
+        
+           | <a href="/blog/2014/11/09/openstack-on-a-chromebox/#disqus_thread"
+             data-disqus-identifier="http://ian.blenke.com/blog/2014/11/09/openstack-on-a-chromebox/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Saturday’s project was installing OpenStack on a ChromeBox.</p>
 
 <h2 id="step-0-identify-your-hardware-add-ram">Step 0: Identify your hardware, add RAM</h2>
 
@@ -225,7 +377,7 @@ CMD /run.sh</code></pre></noscript></div>
 
 <p>Thankfully, the memory was very easy to upgrade to 16G, as the bottom snaps right off.</p>
 
-<p><img src="http://ian.blenke.com/images/chromebox/stumpy-top-mid.jpg" alt="Samsung Series 3 Chromebox with bottom exposed" /></p>
+<p><img src="/images/chromebox/stumpy-top-mid.jpg" alt="Samsung Series 3 Chromebox with bottom exposed" /></p>
 
 <h2 id="step-1-make-a-chromeos-recovery-usb">Step 1: Make a ChromeOS recovery USB</h2>
 
@@ -241,7 +393,7 @@ CMD /run.sh</code></pre></noscript></div>
 
 <p>The switch in the image is how I put my ChromeBox <a href="http://www.chromium.org/chromium-os/poking-around-your-chrome-os-device#TOC-Putting-your-Chrome-OS-Device-into-Developer-Mode">into development mode</a>.</p>
 
-<p><img src="http://ian.blenke.com/images/chromebox/stumpy-dev-switch.jpg" alt="Dev Switch on a Samsung Chromebox" /></p>
+<p><img src="/images/chromebox/stumpy-dev-switch.jpg" alt="Dev Switch on a Samsung Chromebox" /></p>
 
 <p>After flipping the switch, reboot.</p>
 
@@ -279,7 +431,7 @@ CMD /run.sh</code></pre></noscript></div>
 
 <p>On the Samsung Series 3 ChromeBox, the jumper looks like this:</p>
 
-<p><img src="http://ian.blenke.com/images/chromebox/spi-flash-chromebox.jpg" alt="Samsung Series 3 flash jumper" /></p>
+<p><img src="/images/chromebox/spi-flash-chromebox.jpg" alt="Samsung Series 3 flash jumper" /></p>
 
 <p>A bit of folded tin-foil made for a quick jumper.</p>
 
@@ -403,15 +555,45 @@ This is your host ip: 10.0.0.106
 
 <p>Cheers!</p>
 
-]]></content>
-  </entry>
+</div>
   
-  <entry>
-    <title type="html"><![CDATA[Fig-docker]]></title>
-    <link href="http://ian.blenke.com/blog/2014/11/07/fig-docker/"/>
-    <updated>2014-11-07T19:20:06-05:00</updated>
-    <id>http://ian.blenke.com/blog/2014/11/07/fig-docker</id>
-    <content type="html"><![CDATA[<p>A common devops problem when developing <a href="http://docker.io">Docker</a> containers is managing the orchestration of multiple containers in a development environment.</p>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/07/fig-docker/">Fig-docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+Nov 7th, 2014
+        
+           | <a href="/blog/2014/11/07/fig-docker/#disqus_thread"
+             data-disqus-identifier="http://ian.blenke.com/blog/2014/11/07/fig-docker/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A common devops problem when developing <a href="http://docker.io">Docker</a> containers is managing the orchestration of multiple containers in a development environment.</p>
 
 <p>There are a number of orchestration harnesses for Docker available:</p>
 
@@ -575,15 +757,45 @@ docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs -e DOCKER_CERT_PATH=/certs
 
 <p>Have fun!</p>
 
-]]></content>
-  </entry>
+</div>
   
-  <entry>
-    <title type="html"><![CDATA[Self-standing Ceph/deis-store Docker Containers]]></title>
-    <link href="http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/"/>
-    <updated>2014-11-05T14:40:59-05:00</updated>
-    <id>http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers</id>
-    <content type="html"><![CDATA[<p>A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.</p>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/">Self-standing Ceph/deis-store Docker Containers</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+Nov 5th, 2014
+        
+           | <a href="/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/#disqus_thread"
+             data-disqus-identifier="http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.</p>
 
 <p>As Docker is meant for immutable infrastructure, this poses somewhat of a challenge for production deployments. Rather than tackle that subject here, we’ll revisit persistence on immutable infrastructure in a production capacity in a future blog post.</p>
 
@@ -731,15 +943,45 @@ AWS_S3_PORT=$(docker run --rm coreos/etcd /bin/sh -c &quot;cd /go/src/github.com
 
 <p>Have fun!</p>
 
-]]></content>
-  </entry>
+</div>
   
-  <entry>
-    <title type="html"><![CDATA[Using Boot2Docker]]></title>
-    <link href="http://ian.blenke.com/blog/2014/11/04/using-boot2docker/"/>
-    <updated>2014-11-04T23:13:25-05:00</updated>
-    <id>http://ian.blenke.com/blog/2014/11/04/using-boot2docker</id>
-    <content type="html"><![CDATA[<h2 id="boot2docker-command-line">Boot2Docker command-line</h2>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/04/using-boot2docker/">Using Boot2Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+Nov 4th, 2014
+        
+           | <a href="/blog/2014/11/04/using-boot2docker/#disqus_thread"
+             data-disqus-identifier="http://ian.blenke.com/blog/2014/11/04/using-boot2docker/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h2 id="boot2docker-command-line">Boot2Docker command-line</h2>
 
 <p>Preface: the <a href="https://github.com/boot2docker/boot2docker">boot2docker README</a> is a great place to discover the below commands in more detail.</p>
 
@@ -814,15 +1056,45 @@ Storage Driver: aufs
 
 <p>And now you have a starting point for exploring <a href="http://docker.io">Docker</a>!</p>
 
-]]></content>
-  </entry>
+</div>
   
-  <entry>
-    <title type="html"><![CDATA[Installing Boot2Docker]]></title>
-    <link href="http://ian.blenke.com/blog/2014/11/04/installing-boot2docker/"/>
-    <updated>2014-11-04T22:41:53-05:00</updated>
-    <id>http://ian.blenke.com/blog/2014/11/04/installing-boot2docker</id>
-    <content type="html"><![CDATA[<p>Starting with a new team of developers, it helps to document the bootstrapping steps to a development environment.</p>
+  
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/11/04/installing-boot2docker/">Installing Boot2Docker</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+Nov 4th, 2014
+        
+           | <a href="/blog/2014/11/04/installing-boot2docker/#disqus_thread"
+             data-disqus-identifier="http://ian.blenke.com/blog/2014/11/04/installing-boot2docker/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Starting with a new team of developers, it helps to document the bootstrapping steps to a development environment.</p>
 
 <p>Rather than try and use a convergence tool like Chef, Puppet, Ansible, or SALT, this time the environment will embrace Docker.</p>
 
@@ -866,55 +1138,263 @@ sudo installer -pkg ~/Downloads/Boot2Docker-1.3.1.pkg -target /
 
 <p>Run the downloaded Boot2Docker.pkg or docker-install.exe to kick off the installer.</p>
 
-<p><img src="http://ian.blenke.com/images/screenshots/boot2docker/step1-downloads.png" width="1636" height="1022" title="Downloads" alt="Boot2docker.pkg in Downloads folder" /></p>
+<p><img src="/images/screenshots/boot2docker/step1-downloads.png" width="1636" height="1022" title="Downloads" alt="Boot2docker.pkg in Downloads folder" /></p>
 
 <h2 id="step-2">Step 2</h2>
 
 <p>Click the Continue button to allow the installer to run a program to detect if boot2docker can be installed.&lt;/p&gt;</p>
 
-<p><img src="http://ian.blenke.com/images/screenshots/boot2docker/step2-run-a-program.png" width="1318" height="968" title="Click Continue button" alt="Allow installer to run a program to detect if boot2docker can be installed" /></p>
+<p><img src="/images/screenshots/boot2docker/step2-run-a-program.png" width="1318" height="968" title="Click Continue button" alt="Allow installer to run a program to detect if boot2docker can be installed" /></p>
 
 <h2 id="step-3">Step 3</h2>
 
 <p>Click the Continue button to proceed beyond the initial installation instructions dialog.</p>
 
-<p><img src="http://ian.blenke.com/images/screenshots/boot2docker/step3-install-splash.png" width="1316" height="944" title="Click Continue button" alt="Instructions to install boot2docker" /></p>
+<p><img src="/images/screenshots/boot2docker/step3-install-splash.png" width="1316" height="944" title="Click Continue button" alt="Instructions to install boot2docker" /></p>
 
 <h2 id="step-4">Step 4</h2>
 
 <p>The installer will now ask for an admin username/password to obtain admin rights to install boot2docker.</p>
 
-<p><img src="http://ian.blenke.com/images/screenshots/boot2docker/step4-enter-password.png" width="1390" height="1104" title="Enter your password" alt="Installer asks for admin rights to install boot2docker" /></p>
+<p><img src="/images/screenshots/boot2docker/step4-enter-password.png" width="1390" height="1104" title="Enter your password" alt="Installer asks for admin rights to install boot2docker" /></p>
 
 <h2 id="step-5">Step 5</h2>
 
 <p>Before installing, the installer will advise how much space the install will take. Click the Install button to start the actual install.</p>
 
-<p><img src="http://ian.blenke.com/images/screenshots/boot2docker/step5-standard-install.png" width="1310" height="968" title="Click Install button" alt="Advice on how much space boot2docker will take when installed" /></p>
+<p><img src="/images/screenshots/boot2docker/step5-standard-install.png" width="1310" height="968" title="Click Install button" alt="Advice on how much space boot2docker will take when installed" /></p>
 
 <h2 id="step-6">Step 6</h2>
 
 <p>When the installation is successfully, click the Close button to exit the installer.</p>
 
-<p><img src="http://ian.blenke.com/images/screenshots/boot2docker/step6-install-completed-successfully.png" width="1334" height="984" title="Click Close button" alt="Install completed successfully" /></p>
+<p><img src="/images/screenshots/boot2docker/step6-install-completed-successfully.png" width="1334" height="984" title="Click Close button" alt="Install completed successfully" /></p>
 
 <h2 id="step-7">Step 7</h2>
 
 <p>You now have a shiny icon for boot2docker in /Applications you can click on to start a boot2docker terminal window session.</p>
 
-<p><img src="http://ian.blenke.com/images/screenshots/boot2docker/step7-installed-boot2docker-app.png" width="1352" height="1006" title="Run boot2docker app" alt="Boot2docker app is in Applications" /></p>
+<p><img src="/images/screenshots/boot2docker/step7-installed-boot2docker-app.png" width="1352" height="1006" title="Run boot2docker app" alt="Boot2docker app is in Applications" /></p>
 
 <p>Congrats. You now have boot2docker installed.</p>
-]]></content>
-  </entry>
+</div>
   
-  <entry>
-    <title type="html"><![CDATA[Immutable Infrastructure Persistence]]></title>
-    <link href="http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence/"/>
-    <updated>2014-10-18T12:55:14-04:00</updated>
-    <id>http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence</id>
-    <content type="html"><![CDATA[<p>Here is a link to my <a href="http://barcamptampabay.org/">Tampa Bay Barcamp 2014 presentation slides</a> for <a href="http://ian.blenke.com/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></p>
-]]></content>
-  </entry>
   
-</feed>
+
+
+    </article>
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/2014/10/18/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+Oct 18th, 2014
+        
+           | <a href="/blog/2014/10/18/immutable-infrastructure-persistence/#disqus_thread"
+             data-disqus-identifier="http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence/">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Here is a link to my <a href="http://barcamptampabay.org/">Tampa Bay Barcamp 2014 presentation slides</a> for <a href="http://ian.blenke.com/immutable-infrastructure-persistence/">Immutable Infrastructure Persistence</a></p>
+</div>
+  
+  
+
+
+    </article>
+  
+  <div class="pagination">
+    
+    <a href="/blog/archives">Blog Archives</a>
+    
+  </div>
+</div>
+<aside class="sidebar">
+   
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:ian.blenke.com" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+  
+    
+<section>
+	<span>
+		<img src="http://www.gravatar.com/avatar/b0efd275b44b660f817003f2baca7ea2" alt="Gravatar of Ian Blenke " title="Gravatar of Ian Blenke" />
+	</span>
+</section>
+<section>
+  <h1>About Me</h1>
+  <p>Ian is a Senior DevOps Engineer at MalwareBytes</p>
+</section>
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/2015/03/10/deploying-amazon-ecs-on-coreos/">Deploying Amazon ECS on CoreOS</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/10/docker-rspec-tdd/">Docker Rspec TDD</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/09/openstack-on-a-chromebox/">OpenStack on a Chromebox</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/07/fig-docker/">Fig-docker</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/">Self-standing Ceph/deis-store Docker Containers</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <a href="https://github.com/ianblenke">@ianblenke</a> on GitHub
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'ianblenke',
+            count: 0,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus">
+  <h1>
+    <a href="https://plus.google.com/+IanBlenke?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+  <script src="/javascripts/google-tracking.js" type="text/javascript"> </script>
+</section>
+
+
+
+  
+</aside>
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - Ian Blenke -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a></span>.
+  <span class="credit">Get the source for this blog at <a href="https://github.com/ianblenke/blog/tree/source">github.com/ianblenke/blog/tree/source<a/></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'ianblenke';
+      
+        
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var script = document.createElement('script'); script.type = 'text/javascript'; script.async = true;
+      script.src = 'https://apis.google.com/js/plusone.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(script, s);
+    })();
+  </script>
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+<script>
+  $(document).ready(function() {  
+  var stickyNavTop = $('nav').offset().top;  
+    
+  var stickyNav = function(){  
+  var scrollTop = $(window).scrollTop();  
+         
+  if (scrollTop > stickyNavTop) {   
+      $('nav').addClass('sticky');  
+  } else {  
+      $('nav').removeClass('sticky');   
+  }  
+  };  
+    
+  stickyNav();  
+    
+  $(window).scroll(function() {  
+      stickyNav();  
+  });  
+  });  
+</script>
+
+
+</body>
+</html>

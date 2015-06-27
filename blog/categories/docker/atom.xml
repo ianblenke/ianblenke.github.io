@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Docker | Ian Blenke - DevOps]]></title>
   <link href="http://ian.blenke.com/blog/categories/docker/atom.xml" rel="self"/>
   <link href="http://ian.blenke.com/"/>
-  <updated>2015-06-27T15:50:31-04:00</updated>
+  <updated>2015-06-27T15:52:04-04:00</updated>
   <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -26,9 +26,9 @@ others facing the same challenges.</p>
 
 <hr />
 
-<p>= Part 1 : Preparing a VPC for your ElasticBeanstalk environments</p>
+<h1 id="part-1--preparing-a-vpc-for-your-elasticbeanstalk-environments">Part 1 : Preparing a VPC for your ElasticBeanstalk environments</h1>
 
-<p>== Step 1 : Prepare your AWS development environment.</p>
+<h2 id="step-1--prepare-your-aws-development-environment">Step 1 : Prepare your AWS development environment.</h2>
 
 <p>On OS/X, I install <a href="http://brew.sh">homebrew</a>, and then:</p>
 
@@ -119,7 +119,7 @@ Default output format [None]: json
 
 <p>Getting in the habit of specifying <code>--profile aws-dev</code> is a bit of a reassurance that you’re provisioning resources into the correct AWS account, and not sullying AWS cloud resources between VPC environments.</p>
 
-<p>== Step 2: Preparing a VPC</p>
+<h2 id="step-2-preparing-a-vpc">Step 2: Preparing a VPC</h2>
 
 <p>Deploying anything to AWS EC2 Classic instances these days is to continue down the path of legacy maintenance.</p>
 

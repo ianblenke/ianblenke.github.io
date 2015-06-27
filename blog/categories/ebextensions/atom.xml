@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Ebextensions | Ian Blenke - DevOps]]></title>
   <link href="http://ian.blenke.com/blog/categories/ebextensions/atom.xml" rel="self"/>
   <link href="http://ian.blenke.com/"/>
-  <updated>2015-06-27T15:54:37-04:00</updated>
+  <updated>2015-06-27T15:59:50-04:00</updated>
   <id>http://ian.blenke.com/</id>
   <author>
     <name><![CDATA[Ian Blenke]]></name>
@@ -44,7 +44,7 @@ brew install awscli
 choco install awscli
 </code></p>
 
-<p>As <code>awscli</code> is a python tool, we can alternatively use python <code>easyinstall</code> or <code>pip</code> directly:</p>
+<p>Because <code>awscli</code> is a python tool, on either of these, or on the various Linux distribution flavors, we can also avoid native package management and alternatively use python <code>easyinstall</code> or <code>pip</code> directly:</p>
 
 <p><code>bash
 pip install awscli
@@ -79,6 +79,8 @@ pip install --upgrade awscli
 <p><code>bash
 sudo pip install --upgrade awscli
 </code></p>
+
+<p>For the hardcore Docker fans out there, this is pretty trivial to run as a container as well. See <a href="https://github.com/CenturyLinkLabs/docker-aws-cli">CenturyLinkLabs/docker-aws-cli</a> for a good example of that. Managing an aws config file requires volume mapping, or passing <code>-e AWS_ACCESS_KEY_ID={redacted} -e AWS_SECRET_ACCESS_KEY={redacted}</code>. There are various guides to doing this out there. This will not be one of them ;)</p>
 
 <h3 id="step-2-prepare-your-aws-environment-variables">Step 2: Prepare your AWS environment variables</h3>
 

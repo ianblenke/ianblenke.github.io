@@ -121,6 +121,8 @@ others facing the same challenges.</p>
 
 <h1 id="part-1--preparing-a-vpc-for-your-elasticbeanstalk-environments">Part 1 : Preparing a VPC for your ElasticBeanstalk environments</h1>
 
+<hr />
+
 <h3 id="step-1--prepare-your-aws-development-environment">Step 1 : Prepare your AWS development environment.</h3>
 
 <p>On OS/X, I install <a href="http://brew.sh">homebrew</a>, and then:</p>
@@ -171,7 +173,7 @@ others facing the same challenges.</p>
 </pre></td><td class="code"><pre><code class="bash"><span class="line">sudo pip install --upgrade awscli
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
-<h3 id="prepare-your-aws-environment-variables">Prepare your AWS environment variables</h3>
+<h3 id="step-2-prepare-your-aws-environment-variables">Step 2: Prepare your AWS environment variables</h3>
 
 <p>If you haven’t already, <a href="http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#config-settings-and-precedence">prepare for AWS cli access</a>.</p>
 
@@ -226,7 +228,7 @@ others facing the same challenges.</p>
 
 <p>Getting in the habit of specifying <code>--profile aws-dev</code> is a bit of a reassurance that you’re provisioning resources into the correct AWS account, and not sullying AWS cloud resources between VPC environments.</p>
 
-<h3 id="step-2-preparing-a-vpc">Step 2: Preparing a VPC</h3>
+<h3 id="step-3-preparing-a-vpc">Step 3: Preparing a VPC</h3>
 
 <p>Deploying anything to AWS EC2 Classic instances these days is to continue down the path of legacy maintenance.</p>
 

@@ -143,7 +143,7 @@ others facing the same challenges.</p>
 <p>You may (or may not) need to prefix that pip install with <code>sudo</code>, depending. ie:</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class="bash"><span class="line">sudo pip install awscli awsebcli
+</pre></td><td class="code"><pre><code class="bash"><span class="line">sudo pip install awscli
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>These tools will detect if they are out of date when you run them. You may eventually get a message like:</p>
@@ -633,7 +633,28 @@ make
 
 <p>These CloudFormation Outputs list parameters that we will need to pass to the ElasticBeanstalk Environment creation during the next part of this walkthrough. </p>
 
+<h1 id="one-final-vpc-note-iam-permissions-for-ec2-instance-profiles">One final VPC note: IAM permissions for EC2 instance profiles</h1>
+
+<p>As a general rule of thumb, each AWS ElasticBanstalk Application Environment should be given its own IAM Instance Profile to use.</p>
+
+<p>Each AWS EC2 instance should be allowed to assume an IAM role for an IAM instance profile that gives it access to the AWS cloud resources it must interface with.</p>
+
+<p>This is accomplished by <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html">introspecting on AWS instance metadata</a>. If you haven’t been exposed to this yet, I strongly recommend poking around at <code>http://169.254.169.254</code> from your EC2 instances:</p>
+
+<div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
+</pre></td><td class="code"><pre><code class="bash"><span class="line">curl http://169.254.169.254/latest/meta-data/iam/security-credentials/role-myapp-dev
+</span></code></pre></td></tr></table></div></figure></notextile></div>
+
+<p>The JSON returned from that command allows an AWS library call with no credentials automatically obtain time-limited IAM STS credentials when run on AWS EC2 instances.</p>
+
+<p>This avoids having to embed “permanent” IAM access/secret keys as environment variables that may “leak” over time to parties that shouldn’t have access.</p>
+
+<p>Early on, we tried to do this as an ebextension in <code>.ebextensions/00_iam.config</code>, but this only works if the admin running the <code>eb create</code> has IAM permissions for the AWS account, and it appears impossible to change the launch InstanceProfile by defining option settings or overriding cloud resources in an ebextensions config file.</p>
+
+<p>Instead, the VPC above generates an <code>InstanceProfile</code> that can be referenced later. More on that later in Part 2.</p>
+
 <p>Stay tuned…</p>
+
 </div>
 
 
@@ -681,7 +702,7 @@ make
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/2015/03/10/deploying-amazon-ecs-on-coreos/" title="Previous Post: Deploying Amazon ECS on CoreOS">&laquo; Deploying Amazon ECS on CoreOS</a>
+        <a class="basic-alignment left" href="/blog/2015/06/27/aws-docker-walkthrough-with-elasticbeanstalk-part-2/" title="Previous Post: AWS Docker Walkthrough with ElasticBeanstalk: Part 2">&laquo; AWS Docker Walkthrough with ElasticBeanstalk: Part 2</a>
       
       
     </p>
@@ -725,6 +746,10 @@ make
       </li>
     
       <li class="post">
+        <a href="/blog/2015/06/27/aws-docker-walkthrough-with-elasticbeanstalk-part-2/">AWS Docker Walkthrough With ElasticBeanstalk: Part 2</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/2015/03/10/deploying-amazon-ecs-on-coreos/">Deploying Amazon ECS on CoreOS</a>
       </li>
     
@@ -734,10 +759,6 @@ make
     
       <li class="post">
         <a href="/blog/2014/11/09/openstack-on-a-chromebox/">OpenStack on a Chromebox</a>
-      </li>
-    
-      <li class="post">
-        <a href="/blog/2014/11/07/fig-docker/">Fig-docker</a>
       </li>
     
   </ul>

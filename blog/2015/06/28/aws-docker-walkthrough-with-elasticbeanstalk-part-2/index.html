@@ -215,7 +215,7 @@ others facing the same challenges.</p>
 <p>Alternatively, if you are on a development platform without ssh-keygen for some reason, you can have AWS generate it for you:</p>
 
 <div class="bogus-wrapper"><notextile><figure class="code"><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class="line-number">1</span>
-</pre></td><td class="code"><pre><code class="bash"><span class="line">aws ec2 create-key-pair --key-name cosmos-dev &gt; ~/.ssh/id_rsa-cosmos-dev
+</pre></td><td class="code"><pre><code class="bash"><span class="line">aws ec2 create-key-pair --key-name myapp-dev &gt; ~/.ssh/myapp-dev
 </span></code></pre></td></tr></table></div></figure></notextile></div>
 
 <p>The downside to the second method is that AWS has the private key (as they generated it, and you shipped it via https over the network to your local machine), whereas in the first example they do not.</p>

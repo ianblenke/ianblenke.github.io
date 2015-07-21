@@ -1,0 +1,211 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Devstack on Ian Blenke</title>
+    <link>http://ian.blenke.com/categories/devstack/</link>
+    <description>Recent content in Devstack on Ian Blenke</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <lastBuildDate>Sun, 09 Nov 2014 19:02:40 -0500</lastBuildDate>
+    <atom:link href="http://ian.blenke.com/categories/devstack/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>OpenStack on a Chromebox</title>
+      <link>http://ian.blenke.com/post/2014-11-09-openstack-on-a-chromebox/</link>
+      <pubDate>Sun, 09 Nov 2014 19:02:40 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-09-openstack-on-a-chromebox/</guid>
+      <description>
+
+&lt;p&gt;Saturday&amp;rsquo;s project was installing OpenStack on a ChromeBox.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-0-identify-your-hardware-add-ram:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 0: Identify your hardware, add RAM&lt;/h2&gt;
+
+&lt;p&gt;Before you begin, make sure you &lt;a href=&#34;http://www.chromium.org/chromium-os/developer-information-for-chrome-os-devices&#34;&gt;know which ChromeOS device you have&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In my case, it was a &lt;a href=&#34;http://www.chromium.org/chromium-os/developer-information-for-chrome-os-devices/samsung-sandy-bridge&#34;&gt;Samsung Series 3 Chromebox&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Thankfully, the memory was very easy to upgrade to 16G, as the bottom snaps right off.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/chromebox/stumpy-top-mid.jpg&#34; alt=&#34;Samsung Series 3 Chromebox with bottom exposed&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-1-make-a-chromeos-recovery-usb:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 1: Make a ChromeOS recovery USB&lt;/h2&gt;
+
+&lt;p&gt;Plug in a 4G or larger USB stick, then open this URL on your ChromeOS device:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;chrome://imageburner&#34;&gt;chrome://imageburner&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Follow the instructions.&lt;/p&gt;
+
+&lt;p&gt;We shouldn&amp;rsquo;t need this, but you never know. (And, yes, I did end up needing it during one of my iterations while writing this post).&lt;/p&gt;
+
+&lt;h2 id=&#34;step-2-enable-developer-mode:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 2: Enable developer mode&lt;/h2&gt;
+
+&lt;p&gt;The switch in the image is how I put my ChromeBox &lt;a href=&#34;http://www.chromium.org/chromium-os/poking-around-your-chrome-os-device#TOC-Putting-your-Chrome-OS-Device-into-Developer-Mode&#34;&gt;into development mode&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/chromebox/stumpy-dev-switch.jpg&#34; alt=&#34;Dev Switch on a Samsung Chromebox&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After flipping the switch, reboot.&lt;/p&gt;
+
+&lt;p&gt;On this first reboot, the existing on-board storage will be wiped entirely, erasing any account credentials and cached content.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-3-login-to-the-console-as-chronos:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 3: Login to the console as &amp;ldquo;chronos&amp;rdquo;&lt;/h2&gt;
+
+&lt;p&gt;Using cntl-alt-F2, enter the username &amp;ldquo;chronos&amp;rdquo; at the login: prompt. Hit return at the password: prompt (the default chronos password is an empty string).&lt;/p&gt;
+
+&lt;p&gt;Note: You did not actually need to login to google via the UI interface.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-4-enable-usb-and-seabios-booting:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 4: Enable USB and SeaBIOS booting&lt;/h2&gt;
+
+&lt;p&gt;Now that you have a shell as chronos, you can enable USB booting.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;sudo crossystem dev_boot_usb=1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After enabling and rebooting, you can now boot from USB drives with &lt;code&gt;cntl-u&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;In order to install Ubuntu (or your distro of choice), we need to legacy boot. This requires a BIOS.&lt;/p&gt;
+
+&lt;p&gt;Newer ChromeBox hardware includes SeaBIOS natively.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;sudo crossystem dev_boot_legacy=1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After enabling and rebooting, you can now boot to legacy images with &lt;code&gt;cntl-l&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;If you have an older ChromeBox (like the Samsung Series 3) that doesn&amp;rsquo;t have a SeaBIOS boot, you will need to flash one.&lt;/p&gt;
+
+&lt;p&gt;Flashing a new bootstrap requires a jumper or other physical change to hardware to allow the &lt;a href=&#34;http://flashrom.org/Flashrom&#34;&gt;flashrom&lt;/a&gt; tool to write to flash.&lt;/p&gt;
+
+&lt;p&gt;NOTE: &lt;B&gt;ASSUME THAT THIS WILL LIKELY BRICK YOUR CHROMEBOX. YOU HAVE BEEN WARNED&lt;/B&gt;&lt;/p&gt;
+
+&lt;p&gt;On the Samsung Series 3 ChromeBox, the jumper looks like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/chromebox/spi-flash-chromebox.jpg&#34; alt=&#34;Samsung Series 3 flash jumper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A bit of folded tin-foil made for a quick jumper.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://johnlewis.ie/&#34;&gt;John Lewis&lt;/a&gt; is &lt;a href=&#34;https://johnlewis.ie/custom-chromebook-firmware/rom-download/&#34;&gt;maintaining a marvelous script&lt;/a&gt; that auto-detects and flashes an updated SeaBIOS for most ChromeBook/ChromeBox hardware:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget https://johnlewis.ie/getnflash_johnlewis_rom.sh
+chmod u+x getnflash_johnlewis_rom.sh
+./getnflash_johnlewis_rom.sh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The script makes you type &amp;ldquo;If this bricks my Chromebook/box, on my head be it!&amp;rdquo; to make sure you understand that you are most likely going to brick your chromebox/chromebook by proceeding. This is no joke.&lt;/p&gt;
+
+&lt;p&gt;Being ok with potentially bricking my ChromeBox, I went ahead.&lt;/p&gt;
+
+&lt;p&gt;The script ran to completion without errors, and was thoroughly successful.&lt;/p&gt;
+
+&lt;p&gt;After rebooting, I now get a SeaBIOS splash identification (rather than the eventual sick computer).&lt;/p&gt;
+
+&lt;p&gt;The downside to doing this is that I now &lt;em&gt;must&lt;/em&gt; boot off of an external USB device, as the SeaBIOS doesn&amp;rsquo;t seem to support booting from the built-in MMC SSD anymore.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-5-install-your-linux-distribution:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 5: Install your Linux distribution&lt;/h2&gt;
+
+&lt;p&gt;I went ahead and pulled an Ubuntu Trust 14.04 ISO and DD&amp;rsquo;ed it to a USB stick on my Mac.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget -c http://releases.ubuntu.com/14.04/ubuntu-14.04-desktop-amd64.iso
+diskutil list
+hdiutil unmount /Volumes/USBSTICK
+sudo dd if=ubuntu-14.04-desktop-amd64.iso of=/dev/disk5 bs=1m
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After it finished flashing, I removed the USB stick from my Mac and plugged it into the front of the ChromeBox.&lt;/p&gt;
+
+&lt;p&gt;The USB installation media for Ubuntu was detected by SeaBIOS as the second bootable USB device.&lt;/p&gt;
+
+&lt;p&gt;I also attached 2 external 1TB USB disks to the back as the media that will be installed to.
+These appeared as the third and fourth bootable devices to SeaBIOS.&lt;/p&gt;
+
+&lt;p&gt;With my new SeaBIOS bootstrap, I now must hit &amp;ldquo;Esc&amp;rdquo; and &amp;ldquo;2&amp;rdquo; to boot off of the first USB stick for the Ubuntu installation.&lt;/p&gt;
+
+&lt;p&gt;This presented me with the Ubunu boot menu.&lt;/p&gt;
+
+&lt;p&gt;Beyond this point, I installed Ubuntu to the two external 1TB USB disks, with a primary boot partition (type &amp;ldquo;83&amp;rdquo;) on each for /boot as normal linux ext4, and a primary RAID partition (type &amp;ldquo;fd&amp;rdquo;) on each for the RAID1 mirror upon which I layered LVM with a volume group named &amp;ldquo;vg&amp;rdquo; and a &amp;ldquo;rootfs&amp;rdquo; and a &amp;ldquo;swapfs&amp;rdquo; logical volume. At the end, I installed the grub boot sector to /dev/sdb and /dev/sdc (the two external 1TB USB drives).&lt;/p&gt;
+
+&lt;p&gt;After removing the USB stick for the Ubuntu installation media, the SeaBIOS entries shifted by 1.&lt;/p&gt;
+
+&lt;p&gt;With my new SeaBIOS bootstrap, I now must hit &amp;ldquo;Esc&amp;rdquo; and &amp;ldquo;2&amp;rdquo; to boot off of the first USB 1TB drive, or &amp;ldquo;3&amp;rdquo; for the second USB 1TB drive.&lt;/p&gt;
+
+&lt;p&gt;When I figure out how to get around the SeaBIOS hang on boot if I don&amp;rsquo;t do this, I will update this blog post.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-4-devstack-installation-of-openstack:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 4: Devstack installation of OpenStack&lt;/h2&gt;
+
+&lt;p&gt;From this point forward, I followed the &lt;a href=&#34;http://devstack.org&#34;&gt;DevStack&lt;/a&gt; &lt;a href=&#34;http://docs.openstack.org/developer/devstack/guides/single-machine.html&#34;&gt;All-in-one single-machine install guide&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;My local.conf for the all-in-one install is a collection of bits and pieces collected while digging around:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[[local|localrc]]
+
+SERVICE_TOKEN=a682f596-76f3-11e3-b3b2-e716f9080d50
+ADMIN_PASSWORD=nomoresecrets
+MYSQL_PASSWORD=iheartdatabases
+RABBIT_PASSWORD=flopsymopsy
+SERVICE_PASSWORD=$ADMIN_PASSWORD
+#HOST_IP=10.0.0.106
+DEST=/opt/stack
+LOGFILE=$DEST/logs/stack.sh.log
+LOGDAYS=7
+#LOG_COLOR=False
+# Uncomment these to grab the milestone-proposed branches from the repos:
+#CINDER_BRANCH=milestone-proposed
+#GLANCE_BRANCH=milestone-proposed
+#HORIZON_BRANCH=milestone-proposed
+#KEYSTONE_BRANCH=milestone-proposed
+#KEYSTONECLIENT_BRANCH=milestone-proposed
+#NOVA_BRANCH=milestone-proposed
+#NOVACLIENT_BRANCH=milestone-proposed
+#NEUTRON_BRANCH=milestone-proposed
+#SWIFT_BRANCH=milestone-proposed
+SWIFT_HASH=66a3d6b56c1f479c8b4e70ab5c2000f5
+SWIFT_REPLICAS=1
+SWIFT_DATA_DIR=$DEST/data/swift
+FIXED_RANGE=10.1.0.0/24
+FLOATING_RANGE=10.2.0.0/24
+FIXED_NETWORK_SIZE=256
+PUBLIC_INTERFACE=eth0
+NET_MAN=FlatDHCPManager
+FLAT_NETWORK_BRIDGE=br100
+SCREEN_LOGDIR=$DEST/logs/screen
+VOLUME_GROUP=&amp;quot;vg&amp;quot;
+VOLUME_NAME_PREFIX=&amp;quot;cinder-&amp;quot;
+VOLUME_BACKING_FILE_SIZE=10250M
+API_RATE_LIMIT=False
+VIRT_DRIVER=libvirt
+LIBVIRT_TYPE=kvm
+#SCHEDULER=nova.scheduler.filter_scheduler.FilterScheduler
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As the stack user, running &lt;code&gt;./stack.sh&lt;/code&gt; kicked off the install, and it completed successfully.&lt;/p&gt;
+
+&lt;p&gt;At the end, it tells you the URLs to use to access your new OpenStack server:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Horizon is now available at http://10.0.0.106/
+Keystone is serving at http://10.0.0.106:5000/v2.0/
+Examples on using novaclient command line is in exercise.sh
+The default users are: admin and demo
+The password: nomoresecrets
+This is your host ip: 10.0.0.106
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I also ended up creating this &lt;code&gt;~/.fog&lt;/code&gt; file locally on my Mac, based on &lt;a href=&#34;http://docs.cloudfoundry.org/deploying/openstack/validate_openstack.html&#34;&gt;CloudFoundry&amp;rsquo;s guide to validating your OpenStack&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:openstack:
+  :openstack_auth_url:  http://10.0.0.106:5000/v2.0/tokens
+  :openstack_api_key:   nomoresecrets
+  :openstack_username:  admin
+  :openstack_tenant:    admin
+  :openstack_region:    RegionOne # Optional
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;With it, I can now use the &lt;a href=&#34;http://fog.io&#34;&gt;fog&lt;/a&gt; command-line tool locally on my development Mac to manipulate the ChromeBox based OpenStack server.&lt;/p&gt;
+
+&lt;p&gt;Cheers!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

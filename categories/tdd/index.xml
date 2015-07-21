@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tdd on Ian Blenke</title>
+    <link>http://ian.blenke.com/categories/tdd/</link>
+    <description>Recent content in Tdd on Ian Blenke</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <lastBuildDate>Mon, 10 Nov 2014 14:38:37 -0500</lastBuildDate>
+    <atom:link href="http://ian.blenke.com/categories/tdd/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Docker rspec TDD</title>
+      <link>http://ian.blenke.com/post/2014-11-10-docker-rspec-tdd/</link>
+      <pubDate>Mon, 10 Nov 2014 14:38:37 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-10-docker-rspec-tdd/</guid>
+      <description>&lt;p&gt;A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other important interfaces.&lt;/p&gt;
+
+&lt;p&gt;Test-Driven Design should drive a developer toward implementation details, not the other way around.&lt;/p&gt;
+
+&lt;p&gt;A devops without tests is a sad devops indeed.&lt;/p&gt;
+
+&lt;p&gt;Working toward a docker based development environment, my first thoughts were toward &lt;a href=&#34;http://serverspec.org/&#34;&gt;Serverspec&lt;/a&gt; by &lt;a href=&#34;https://github.com/mizzy&#34;&gt;Gosuke Miayshita&lt;/a&gt;, as it is entirely framework agnostic. Gosuke gave an excellent presentation at ChefConf this year re-inforcing that Serverspec is &lt;em&gt;not&lt;/em&gt; a chef centric tool, and works quite well in conjunction with other configuration management tools.&lt;/p&gt;
+
+&lt;p&gt;Researching Serverspec and docker a bit more, &lt;a href=&#34;https://github.com/tcnksm&#34;&gt;Taichi Nakashima&lt;/a&gt; based his &lt;a href=&#34;https://github.com/tcnksm-sample/docker-rspec&#34;&gt;TDD of Dockerfile by RSpec on OS/X&lt;/a&gt; using ssh.&lt;/p&gt;
+
+&lt;p&gt;With Docker 1.3 and later, there is a &amp;ldquo;docker exec&amp;rdquo; interactive docker API for allowing live sessions on processes spawned in the same process namespace as a running container, effectively allowing external access into a running docker container using only the docker API.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.wercker.com/2013/12/23/Test-driven-development-for-docker.html&#34;&gt;PIETER JOOST VAN DE SANDE&lt;/a&gt; posted about using the docker-api to accomplish the goal of testing a Dockerfile. His work is based on the &lt;a href=&#34;https://rubygems.org/gems/docker-api&#34;&gt;docker-api&lt;/a&gt; gem (github &lt;a href=&#34;https://github.com/swipely/docker-api&#34;&gt;swipely/docker-api&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Looking into the docker-api source, there is no support yet for docker 1.3&amp;rsquo;s exec API interface to run Serverspec tests against the contents of a running docker container.&lt;/p&gt;
+
+&lt;p&gt;Attempting even the most basic docker API calls with docker-api, &lt;a href=&#34;https://github.com/swipely/docker-api/issues/202&#34;&gt;issue 202&lt;/a&gt; made it apparent that TLS support for boot2docker would need to be addressed first.&lt;/p&gt;
+
+&lt;p&gt;Here is my functional &lt;code&gt;spec_helper.rb&lt;/code&gt; with the fixes necessary to use docker-api without modifications:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;require &amp;quot;docker&amp;quot;
+
+docker_host = ENV[&#39;DOCKER_HOST&#39;].dup
+
+if(ENV[&#39;DOCKER_TLS_VERIFY&#39;])
+  cert_path = File.expand_path ENV[&#39;DOCKER_CERT_PATH&#39;]
+  Docker.options = {
+    client_cert: File.join(cert_path, &#39;cert.pem&#39;),
+    client_key: File.join(cert_path, &#39;key.pem&#39;)
+  }
+  Excon.defaults[:ssl_ca_file] = File.join(cert_path, &#39;ca.pem&#39;)
+  docker_host.gsub!(/^tcp/,&#39;https&#39;)
+end
+
+Docker.url = docker_host
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Following this, I can drive the generation of a Dockerfile with a spec:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;require &amp;quot;spec_helper&amp;quot;
+
+describe &amp;quot;dockerfile built my_app image&amp;quot; do
+  before(:all) do
+    @image = Docker::Image.all(:all =&amp;gt; true).find { |image|
+      Docker::Util.parse_repo_tag( image.info[&#39;RepoTags&#39;].first ).first == &#39;my_app&#39;
+    }
+    p @image.json[&amp;quot;Env&amp;quot;]
+  end
+
+  it &amp;quot;should exist&amp;quot; do
+    expect(@image).not_to be_nil
+  end
+
+  it &amp;quot;should have CMD&amp;quot; do
+    expect(@image.json[&amp;quot;Config&amp;quot;][&amp;quot;Cmd&amp;quot;]).to include(&amp;quot;/run.sh&amp;quot;)
+  end
+
+  it &amp;quot;should expose the default port&amp;quot; do
+    expect(@image.json[&amp;quot;Config&amp;quot;][&amp;quot;ExposedPorts&amp;quot;].has_key?(&amp;quot;3000/tcp&amp;quot;)).to be_truthy
+  end
+
+  it &amp;quot;should have environmental variable&amp;quot; do
+    expect(@image.json[&amp;quot;Config&amp;quot;][&amp;quot;Env&amp;quot;]).to include(&amp;quot;HOME=/usr/src/app&amp;quot;)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This drives me iteratively to write a Dockerfile that looks like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;FROM rails:onbuild
+ENV HOME /usr/src/app
+ADD docker/run.sh /run.sh
+RUN chmod 755 /run.sh
+EXPOSE 3000
+CMD /run.sh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next step: extend docker-api to support exec for serverspec based testing of actual docker image contents.&lt;/p&gt;
+
+&lt;p&gt;Sláinte!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

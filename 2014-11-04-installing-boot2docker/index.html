@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en-US" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keyword" content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>Installing Boot2Docker</title>
+
+ 	
+	<link href="/css/journal.css" rel="stylesheet">
+
+ 	
+ 	<link href="/css/style.css" rel="stylesheet">
+</head>
+<body lang="en">
+	<div class="container">
+		<div class="row">
+			<div class="navbar navbar-default navbar-inverse" role="navigation">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="http://localhost:1313/">Ian Blenke</a> 
+				</div>
+				<div class="navbar-collapse collapse navbar-responsive-collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="http://localhost:1313/">Home</a></li>
+						<li><a href="http://localhost:1313//page/about/">About</a></li>
+						<li><a href="http://localhost:1313//page/resume/">Resume</a></li>
+						<li><a href="http://localhost:1313//post/">Blog</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<div class="container">	
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<h3>Installing Boot2Docker</h3>
+			<span class="label label-primary">Tue Nov 4, 2014</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<br>
+			
+
+<p>Starting with a new team of developers, it helps to document the bootstrapping steps to a development environment.</p>
+
+<p>Rather than try and use a convergence tool like Chef, Puppet, Ansible, or SALT, this time the environment will embrace Docker.</p>
+
+<p>We could use a tool like Vagrant, but we need to support both Windows and Mac development workstations, and Vagrant under Windows can be vexing.</p>
+
+<p>For this, we will begin anew using <a href="http://boot2docker.io">Boot2Docker</a></p>
+
+<p>Before we begin, be sure to install <a href="https://www.virtualbox.org/">VirtualBox</a> from Oracle&rsquo;s <a href="https://www.virtualbox.org/">VirtualBox.org website</a></p>
+
+<p>The easiest way to install VirtualBox is to use <a href="http://caskroom.io/">HomeBrew Cask</a> under <a href="http://brew.sh">HomeBrew</a></p>
+
+<pre><code>brew install caskroom/cask/brew-cask
+brew cask install virtualbox
+</code></pre>
+
+<p>The easiest way to install boot2docker is to use <a href="http://brew.sh">HomeBrew</a></p>
+
+<pre><code>brew install boot2docker
+</code></pre>
+
+<p>Afterward, be sure to upgrade the homebrew bottle to the latest version of boot2docker:</p>
+
+<pre><code>boot2docker upgrade
+</code></pre>
+
+<p>Alternatively, a sample commandline install of boot2docker might look like this:</p>
+
+<pre><code>wget https://github.com/boot2docker/osx-installer/releases/download/v1.3.1/Boot2Docker-1.3.1.pkg
+sudo installer -pkg ~/Downloads/Boot2Docker-1.3.1.pkg -target /
+</code></pre>
+
+<p>I&rsquo;ll leave the commandline install of VirtualBox up to your imagination. With <a href="http://caskroom.io">HomeBrew Cask</a>, there&rsquo;s really not much of a point.</p>
+
+<p>If you&rsquo;re still not comfortable, below is a pictoral screenshot guide to installing boot2docker the point-and-click way.</p>
+
+<h2 id="step-0:bda8e2da4c25c59eb4207f49eeff732d">Step 0</h2>
+
+<p>Download <a href="https://github.com/boot2docker/osx-installer/releases">boot2docker for OS/X</a> or <a href="https://github.com/boot2docker/windows-installer/releases">boot2docker for Windows</a></p>
+
+<h2 id="step-1:bda8e2da4c25c59eb4207f49eeff732d">Step 1</h2>
+
+<p>Run the downloaded Boot2Docker.pkg or docker-install.exe to kick off the installer.</p>
+
+<p>{% img /images/screenshots/boot2docker/step1-downloads.png 1636 1022 &lsquo;Downloads&rsquo; &lsquo;Boot2docker.pkg in Downloads folder&rsquo; %}</p>
+
+<h2 id="step-2:bda8e2da4c25c59eb4207f49eeff732d">Step 2</h2>
+
+<p>Click the Continue button to allow the installer to run a program to detect if boot2docker can be installed.</p></p>
+
+<p>{% img /images/screenshots/boot2docker/step2-run-a-program.png 1318 968 &lsquo;Click Continue button&rsquo; &lsquo;Allow installer to run a program to detect if boot2docker can be installed&rsquo; %}</p>
+
+<h2 id="step-3:bda8e2da4c25c59eb4207f49eeff732d">Step 3</h2>
+
+<p>Click the Continue button to proceed beyond the initial installation instructions dialog.</p>
+
+<p>{% img /images/screenshots/boot2docker/step3-install-splash.png 1316 944 &lsquo;Click Continue button&rsquo; &lsquo;Instructions to install boot2docker&rsquo; %}</p>
+
+<h2 id="step-4:bda8e2da4c25c59eb4207f49eeff732d">Step 4</h2>
+
+<p>The installer will now ask for an admin username/password to obtain admin rights to install boot2docker.</p>
+
+<p>{% img /images/screenshots/boot2docker/step4-enter-password.png 1390 1104 &lsquo;Enter your password&rsquo; &lsquo;Installer asks for admin rights to install boot2docker&rsquo; %}</p>
+
+<h2 id="step-5:bda8e2da4c25c59eb4207f49eeff732d">Step 5</h2>
+
+<p>Before installing, the installer will advise how much space the install will take. Click the Install button to start the actual install.</p>
+
+<p>{% img /images/screenshots/boot2docker/step5-standard-install.png 1310 968 &lsquo;Click Install button&rsquo; &lsquo;Advice on how much space boot2docker will take when installed&rsquo; %}</p>
+
+<h2 id="step-6:bda8e2da4c25c59eb4207f49eeff732d">Step 6</h2>
+
+<p>When the installation is successfully, click the Close button to exit the installer.</p>
+
+<p>{% img /images/screenshots/boot2docker/step6-install-completed-successfully.png 1334 984 &lsquo;Click Close button&rsquo; &lsquo;Install completed successfully&rsquo; %}</p>
+
+<h2 id="step-7:bda8e2da4c25c59eb4207f49eeff732d">Step 7</h2>
+
+<p>You now have a shiny icon for boot2docker in /Applications you can click on to start a boot2docker terminal window session.</p>
+
+<p>{% img /images/screenshots/boot2docker/step7-installed-boot2docker-app.png 1352 1006 &lsquo;Run boot2docker app&rsquo; &lsquo;Boot2docker app is in Applications&rsquo; %}</p>
+
+<p>Congrats. You now have boot2docker installed.</p>
+
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<hr>
+		</div>
+	</div>	
+</div>
+
+  <div class="container">
+    <div class="row col-md-12">
+          <footer>
+            <div>
+                <p>
+                    &copy; 2014  ~ Powered By <a href="http://hugo.spf13.com">Hugo</a>
+                </p>
+            </div>
+            </footer>
+        </div>
+    </div>
+
+    
+    
+    <script src="/js/jquery-min-2.1.1.js"></script>
+    <script src="/js/bootstrap.min-3.1.1.js"></script>
+    </body>
+</html>

@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ebextensions on Ian Blenke</title>
+    <link>http://ian.blenke.com/categories/ebextensions/</link>
+    <description>Recent content in Ebextensions on Ian Blenke</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <lastBuildDate>Sun, 28 Jun 2015 00:57:08 -0400</lastBuildDate>
+    <atom:link href="http://ian.blenke.com/categories/ebextensions/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>AWS Docker Walkthrough with ElasticBeanstalk: Part 2</title>
+      <link>http://ian.blenke.com/post/2015-06-28-aws-docker-walkthrough-with-elasticbeanstalk-part-2/</link>
+      <pubDate>Sun, 28 Jun 2015 00:57:08 -0400</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2015-06-28-aws-docker-walkthrough-with-elasticbeanstalk-part-2/</guid>
+      <description>
+
+&lt;p&gt;While deploying docker containers for immutable infrastructure on AWS ElasticBeanstalk,
+I&amp;rsquo;ve learned a number of useful tricks that go beyond the official Amazon documentation.&lt;/p&gt;
+
+&lt;p&gt;This series of posts are an attempt to summarize some of the useful bits that may benefit
+others facing the same challenges.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Previously: &lt;a href=&#34;http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/&#34;&gt;Part 1 : Preparing a VPC for your ElasticBeanstalk environments&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&#34;part-2-creating-your-elasticbeanstalk-environment:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Part 2 : Creating your ElasticBeanstalk environment&lt;/h1&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;step-1-create-your-application-in-aws:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 1: Create your Application in AWS&lt;/h3&gt;
+
+&lt;p&gt;Each AWS account needs to have your ElasticBeanstalk application defined initially.&lt;/p&gt;
+
+&lt;p&gt;Operationally, there are few reasons to remove an application from an AWS account, so there&amp;rsquo;s a good bet it&amp;rsquo;s already there.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws elasticbeanstalk create-application \
+  --profile aws-dev \
+  --region us-east-1 \
+  --application-name myapp \
+  --description &#39;My Application&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You should really only ever have to do this once per AWS account.&lt;/p&gt;
+
+&lt;p&gt;There is an example of this in the Makefile as the &lt;code&gt;make application&lt;/code&gt; target.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-2-update-your-aws-development-environment:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 2 : Update your AWS development environment.&lt;/h3&gt;
+
+&lt;p&gt;During our initial VPC creation, we used the &lt;code&gt;aws&lt;/code&gt; command from the &lt;code&gt;awscli&lt;/code&gt; python package.&lt;/p&gt;
+
+&lt;p&gt;When deploying ElasticBeanstalk applications, we use the &lt;code&gt;eb&lt;/code&gt; command from the &lt;code&gt;awsebcli&lt;/code&gt; python package.&lt;/p&gt;
+
+&lt;p&gt;On OS/X, we run:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;brew install awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;On Windows, chocolatey doesn&amp;rsquo;t have awsebcli, but we can install python pip:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;choco install pip
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Again, because &lt;code&gt;awsebcli&lt;/code&gt; is a python tool, we can install with:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pip install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You may (or may not) need to prefix that pip install with &lt;code&gt;sudo&lt;/code&gt; on linux/unix flavors, depending. ie:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo pip install awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These tools will detect if they are out of date when you run them. You may eventually get a message like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Alert: An update to this CLI is available.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When this happens, you will likely want to either upgrade via homebrew:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;brew update &amp;amp; brew upgrade awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;or, more likely, upgrade using pip directly:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pip install --upgrade awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Again, you may (or may not) need to prefix that pip install with &lt;code&gt;sudo&lt;/code&gt;, depending. ie:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo pip install --upgrade awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There really should be an awsebcli Docker image, but there presently is not. Add that to the list of images to build.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-3-create-a-ssh-key-pair-to-use:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 3: Create a ssh key pair to use&lt;/h3&gt;
+
+&lt;p&gt;Typically you will want to generate an ssh key locally and upload the public part:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ssh-keygen -t rsa -b 2048 -f ~/.ssh/myapp-dev -P &#39;&#39;
+aws ec2 import-key-pair --key-name myapp-dev --public-key-material &amp;quot;$(cat ~/.ssh/myapp-dev.pub)&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, if you are on a development platform without ssh-keygen for some reason, you can have AWS generate it for you:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws ec2 create-key-pair --key-name myapp-dev &amp;gt; ~/.ssh/myapp-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The downside to the second method is that AWS has the private key (as they generated it, and you shipped it via https over the network to your local machine), whereas in the first example they do not.&lt;/p&gt;
+
+&lt;p&gt;This ssh key can be used to access AWS instances directly.&lt;/p&gt;
+
+&lt;p&gt;After creating this ssh key, it is probably a good idea that you add it to your team&amp;rsquo;s password management tool (Keepass, Hashicorp Vault, Trousseau, Ansible Vault, Chef Encrypted Databags, LastPass, 1Password, Dashlane, etc) so that the private key isn&amp;rsquo;t only on your development workstation in your local user account.&lt;/p&gt;
+
+&lt;p&gt;Note the naming convention of &lt;code&gt;~/.ssh/$(PROJECT)-$(ENVIRONMENT)&lt;/code&gt; - this is the default key filename that &lt;code&gt;eb ssh&lt;/code&gt; will use.&lt;/p&gt;
+
+&lt;p&gt;If you do not use the above naming convention, you will have to add the generated ssh private key to your ssh-agent&amp;rsquo;s keychain in order to use it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;[ -n $SSH_AUTH_SOCK ] || eval $(ssh-agent)
+ssh-add ~/.ssh/myapp-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To list the ssh keys in your keychain, use:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ssh-add -l
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So long as you see 4 or fewer keys, including they key you created above, you should be ok.&lt;/p&gt;
+
+&lt;p&gt;If you have more than 4 keys listed in your ssh-agent keychain, depending on the order they are tried by your ssh client, that may exceed the default number of ssh key retries allowed on the remote sshd server side, which will prevent you from connecting.&lt;/p&gt;
+
+&lt;p&gt;Now we should have an ssh key pair defined in AWS that we can use when spinning up instances.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-4-initialize-your-local-development-directory-for-the-eb-cli:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 4: Initialize your local development directory for the eb cli&lt;/h3&gt;
+
+&lt;p&gt;Before using the &lt;code&gt;eb&lt;/code&gt; command, you must &lt;code&gt;eb init&lt;/code&gt; your project to create a &lt;code&gt;.elasticbeanstalk/config.yml&lt;/code&gt; file:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;eb init --profile aws-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;--profile aws-dev&lt;/code&gt; is optional, if you created profiles in your &lt;code&gt;~/.aws/config&lt;/code&gt; file. If you are using AWS environment variables your your ACCESS/SECRET keys, or only one default AWS account, you may omit that.&lt;/p&gt;
+
+&lt;p&gt;The application must exist in AWS first, which is why this is run &lt;em&gt;after&lt;/em&gt; the previous step of creating the Application in AWS.&lt;/p&gt;
+
+&lt;p&gt;You may be prompted for some critical bits:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ eb init --profile aws-dev
+eb init --profile aws-dev
+
+Select a default region
+1) us-east-1 : US East (N. Virginia)
+2) us-west-1 : US West (N. California)
+3) us-west-2 : US West (Oregon)
+4) eu-west-1 : EU (Ireland)
+5) eu-central-1 : EU (Frankfurt)
+6) ap-southeast-1 : Asia Pacific (Singapore)
+7) ap-southeast-2 : Asia Pacific (Sydney)
+8) ap-northeast-1 : Asia Pacific (Tokyo)
+9) sa-east-1 : South America (Sao Paulo)
+(default is 3): 1
+
+Select an application to use
+1) myapp
+2) [ Create new Application ]
+(default is 2): 1
+
+Select a platform.
+1) PHP
+2) Node.js
+3) IIS
+4) Tomcat
+5) Python
+6) Ruby
+7) Docker
+8) Multi-container Docker
+9) GlassFish
+10) Go
+(default is 1): 7
+
+Select a platform version.
+1) Docker 1.6.2
+2) Docker 1.6.0
+3) Docker 1.5.0
+(default is 1): 1
+Do you want to set up SSH for your instances?
+(y/n): y
+
+Select a keypair.
+1) myapp-dev
+2) [ Create new KeyPair ]
+(default is 2): 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, to avoid the questions, you can specify the full arguments:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;eb init myapp --profile aws-dev --region us-east-1 -p &#39;Docker 1.6.2&#39; -k myapp-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The end result is a &lt;code&gt;.elasticbeanstalk/config.yml&lt;/code&gt; that will look something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;branch-defaults:
+  master:
+    environment: null
+global:
+  application_name: myapp
+  default_ec2_keyname: myapp-dev
+  default_platform: Docker 1.6.2
+  default_region: us-east-1
+  profile: aws-dev
+  sc: git
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Any field appearing as &lt;code&gt;null&lt;/code&gt; will likely need some manual attention from you after the next step.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-5-create-the-elasticbeanstalk-environment:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 5: Create the ElasticBeanstalk Environment&lt;/h3&gt;
+
+&lt;p&gt;Previously, in &lt;a href=&#34;http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/&#34;&gt;Part 1 : Preparing a VPC for your ElasticBeanstalk environments&lt;/a&gt;, we generated a VPC using a CloudFormation with an output of the Subnets and Security Group. We will need those things below.&lt;/p&gt;
+
+&lt;p&gt;Here is a repeat of that earlier snippet:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;aws cloudformation describe-stacks --stack-name myapp-dev --profile aws-dev --region us-east-1 | jq -r &#39;.Stacks[].Outputs&#39;
+[
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Id&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VpcId&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;vpc-b7d1d8d2&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCDefaultNetworkAcl&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;acl-b3cfc7d6&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Default Security Group that we blissfully ignore thanks to self-referencing bugs&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCDefaultSecurityGroup&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;sg-3e50a559&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Security Group created by this stack&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSecurityGroup&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;sg-0c50a56b&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet0&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet0&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-995236b2&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet1&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet1&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-6aa4fd1d&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet2&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet2&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-ad3644f4&amp;quot;
+  },
+    {
+    &amp;quot;Description&amp;quot;: &amp;quot;The IAM instance profile for EC2 instances&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;InstanceProfile&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;myapp-dev-InstanceProfile-1KCQJP9M5TSVZ&amp;quot;
+  }
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There are two ways to create a new ElasticBeanstalk environment:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Using &lt;code&gt;eb create&lt;/code&gt; with full arguments for the various details of the environment.&lt;/li&gt;
+&lt;li&gt;Using &lt;code&gt;eb create&lt;/code&gt; with a &lt;code&gt;--cfg&lt;/code&gt; argument of a previous &lt;code&gt;eb config save&lt;/code&gt; to a YAML file in &lt;code&gt;.elasticbeanstalk/saved_configs&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The first way looks something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eb create myapp-dev --verbose \
+  --profile aws-dev \
+  --tier WebServer \
+  --cname myapp-dev \
+  -p &#39;64bit Amazon Linux 2015.03 v1.4.3 running Docker 1.6.2&#39; \
+  -k myapp-dev \
+  -ip myapp-dev-InstanceProfile-1KCQJP9M5TSVZ \
+  --tags Project=myapp,Environment=dev \
+  --envvars DEBUG=info \
+  --vpc.ec2subnets=subnet-995236b2,subnet-6aa4fd1d,subnet-ad3644f4 \
+  --vpc.elbsubnets=subnet-995236b2,subnet-6aa4fd1d,subnet-ad3644f4 \
+  --vpc.publicip --vpc.elbpublic --vpc.securitygroups=sg-0c50a56b
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;Makefile&lt;/code&gt; has an &lt;code&gt;environment&lt;/code&gt; target that removes the need to fill in the fields manually:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;outputs:
+    @which jq &amp;gt; /dev/null 2&amp;gt;&amp;amp;1 || ( which brew &amp;amp;&amp;amp; brew install jq || which apt-get &amp;amp;&amp;amp; apt-get install jq || which yum &amp;amp;&amp;amp; yum install jq || which choco &amp;amp;&amp;amp; choco install jq)
+    @aws cloudformation describe-stacks --stack-name myapp-dev --profile aws-dev --region us-east-1 | jq -r &#39;.Stacks[].Outputs | map({key: .OutputKey, value: .OutputValue}) | from_entries&#39;
+
+environment:
+    eb create $(STACK) --verbose \
+      --profile aws-dev \
+      --tier WebServer \
+      --cname $(shell whoami)-$(STACK) \
+      -p &#39;64bit Amazon Linux 2015.03 v1.4.3 running Docker 1.6.2&#39; \
+      -k $(STACK) \
+      -ip $(shell make outputs | jq -r .InstanceProfile) \
+      --tags Project=$(PROJECT),Environment=$(ENVIRONMENT) \
+      --envvars DEBUG=info \
+      --vpc.ec2subnets=$(shell make outputs | jq -r &#39;[ .VPCSubnet0, .VPCSubnet1, .VPCSubnet2 ] | @csv&#39;) \
+      --vpc.elbsubnets=$(shell make outputs | jq -r &#39;[ .VPCSubnet0, .VPCSubnet1, .VPCSubnet2 ] | @csv&#39;) \
+      --vpc.publicip --vpc.elbpublic \
+      --vpc.securitygroups=$(shell make outputs | jq -r .VPCSecurityGroup)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;On the other hand, after a quick config save:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;eb config save myapp-dev --profile aws-dev --region us-east-1 --cfg myapp-dev-sc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We now have the above settings in a YAML file &lt;code&gt;.elasticbeanstalk/saved_configs/myapp-dev-sc.cfg.yml&lt;/code&gt; which can be committed to our git project.&lt;/p&gt;
+
+&lt;p&gt;This leads to the second way to create an ElasticBeanstalk environment:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;eb create myapp-dev --cname myapp-dev --cfg myapp-dev-sc --profile aws-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The flip side of that is the YAML save config has static values embedded in it for a specific deployed VPC.&lt;/p&gt;
+
+&lt;p&gt;More docker goodness to come in Part 3&amp;hellip;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

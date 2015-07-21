@@ -1,0 +1,550 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cloudformation Ebextensions on Ian Blenke</title>
+    <link>http://ian.blenke.com/categories/cloudformation-ebextensions/</link>
+    <description>Recent content in Cloudformation Ebextensions on Ian Blenke</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <lastBuildDate>Sat, 27 Jun 2015 13:14:08 -0400</lastBuildDate>
+    <atom:link href="http://ian.blenke.com/categories/cloudformation-ebextensions/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>AWS Docker Walkthrough with ElasticBeanstalk: Part 1</title>
+      <link>http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/</link>
+      <pubDate>Sat, 27 Jun 2015 13:14:08 -0400</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/</guid>
+      <description>
+
+&lt;p&gt;While deploying docker containers for immutable infrastructure on AWS ElasticBeanstalk,
+I&amp;rsquo;ve learned a number of useful tricks that go beyond the official Amazon documentation.&lt;/p&gt;
+
+&lt;p&gt;This series of posts are an attempt to summarize some of the useful bits that may benefit
+others facing the same challenges.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&#34;part-1-preparing-a-vpc-for-your-elasticbeanstalk-environments:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;Part 1 : Preparing a VPC for your ElasticBeanstalk environments&lt;/h1&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;step-1-prepare-your-aws-development-environment:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;Step 1 : Prepare your AWS development environment.&lt;/h3&gt;
+
+&lt;p&gt;On OS/X, I install &lt;a href=&#34;http://brew.sh&#34;&gt;homebrew&lt;/a&gt;, and then:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;brew install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;On Windows, I install &lt;a href=&#34;https://chocolatey.org/&#34;&gt;chocolatey&lt;/a&gt; and then:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;choco install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Because &lt;code&gt;awscli&lt;/code&gt; is a python tool, on either of these, or on the various Linux distribution flavors, we can also avoid native package management and alternatively use python &lt;code&gt;easyinstall&lt;/code&gt; or &lt;code&gt;pip&lt;/code&gt; directly:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pip install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You may (or may not) need to prefix that pip install with &lt;code&gt;sudo&lt;/code&gt;, depending. ie:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo pip install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These tools will detect if they are out of date when you run them. You may eventually get a message like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Alert: An update to this CLI is available.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When this happens, you will likely want to either upgrade via homebrew:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;brew update &amp;amp; brew upgrade awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;or, more likely, upgrade using pip directly:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pip install --upgrade awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Again, you may (or may not) need to prefix that pip install with &lt;code&gt;sudo&lt;/code&gt;, depending. ie:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo pip install --upgrade awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For the hardcore Docker fans out there, this is pretty trivial to run as a container as well. See &lt;a href=&#34;https://github.com/CenturyLinkLabs/docker-aws-cli&#34;&gt;CenturyLinkLabs/docker-aws-cli&lt;/a&gt; for a good example of that. Managing an aws config file requires volume mapping, or passing &lt;code&gt;-e AWS_ACCESS_KEY_ID={redacted} -e AWS_SECRET_ACCESS_KEY={redacted}&lt;/code&gt;. There are various guides to doing this out there. This will not be one of them ;)&lt;/p&gt;
+
+&lt;h3 id=&#34;step-2-prepare-your-aws-environment-variables:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;Step 2: Prepare your AWS environment variables&lt;/h3&gt;
+
+&lt;p&gt;If you haven&amp;rsquo;t already, &lt;a href=&#34;http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#config-settings-and-precedence&#34;&gt;prepare for AWS cli access&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can now configure your &lt;code&gt;~/.aws/config&lt;/code&gt; by running:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;aws configure
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will create a default configuration.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;ve yet to work with any company with only one AWS account though. You will likely find that you need to support managing multiple AWS configuration profiles.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s an example &lt;code&gt;~/.aws/config&lt;/code&gt; file with multiple profiles:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[default]
+output = json
+region = us-east-1
+
+[profile aws-dev]
+AWS_ACCESS_KEY_ID={REDACTED}
+AWS_SECRET_ACCESS_KEY={REDACTED}
+
+[profile aws-prod]
+AWS_ACCESS_KEY_ID={REDACTED}
+AWS_SECRET_ACCESS_KEY={REDACTED}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can create this by running:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ aws configure --profile aws-dev
+AWS Access Key ID [REDACTED]: YOURACCESSKEY
+AWS Secret Access Key [REDACTED]: YOURSECRETKEY
+Default region name [None]: us-east-1
+Default output format [None]: json
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Getting in the habit of specifying &lt;code&gt;--profile aws-dev&lt;/code&gt; is a bit of a reassurance that you&amp;rsquo;re provisioning resources into the correct AWS account, and not sullying AWS cloud resources between VPC environments.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-3-preparing-a-vpc:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;Step 3: Preparing a VPC&lt;/h3&gt;
+
+&lt;p&gt;Deploying anything to AWS EC2 Classic instances these days is to continue down the path of legacy maintenance.&lt;/p&gt;
+
+&lt;p&gt;For new ElasticBeanstalk deployments, a VPC should be used.&lt;/p&gt;
+
+&lt;p&gt;The easiest/best way to deploy a VPC is to use a &lt;a href=&#34;http://aws.amazon.com/cloudformation/aws-cloudformation-templates/&#34;&gt;CloudFormation template&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Below is a VPC CloudFormation that I use for deployment:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;AWSTemplateFormatVersion&amp;quot;: &amp;quot;2010-09-09&amp;quot;,
+  &amp;quot;Description&amp;quot;: &amp;quot;MyApp VPC&amp;quot;,
+  &amp;quot;Parameters&amp;quot; : {
+    &amp;quot;Project&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;Project name to tag resources with&amp;quot;,
+      &amp;quot;Type&amp;quot; : &amp;quot;String&amp;quot;,
+      &amp;quot;MinLength&amp;quot;: &amp;quot;1&amp;quot;,
+      &amp;quot;MaxLength&amp;quot;: &amp;quot;16&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;[a-z]*&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;any alphabetic string (1-16) characters in length&amp;quot;
+    },
+    &amp;quot;Environment&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;Environment name to tag resources with&amp;quot;,
+      &amp;quot;Type&amp;quot; : &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedValues&amp;quot; : [ &amp;quot;dev&amp;quot;, &amp;quot;qa&amp;quot;, &amp;quot;prod&amp;quot; ],
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be one of dev, qa, or prod&amp;quot;
+    },
+    &amp;quot;SSHFrom&amp;quot;: {
+      &amp;quot;Description&amp;quot; : &amp;quot;Lockdown SSH access (default: can be accessed from anywhere)&amp;quot;,
+      &amp;quot;Type&amp;quot; : &amp;quot;String&amp;quot;,
+      &amp;quot;MinLength&amp;quot;: &amp;quot;9&amp;quot;,
+      &amp;quot;MaxLength&amp;quot;: &amp;quot;18&amp;quot;,
+      &amp;quot;Default&amp;quot; : &amp;quot;0.0.0.0/0&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be a valid CIDR range of the form x.x.x.x/x.&amp;quot;
+    },
+    &amp;quot;VPCNetworkCIDR&amp;quot; : {
+      &amp;quot;Description&amp;quot;: &amp;quot;The CIDR block for the entire VPC network&amp;quot;,
+      &amp;quot;Type&amp;quot;: &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;Default&amp;quot;: &amp;quot;10.114.0.0/16&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be an IPv4 dotted quad plus slash plus network bit length in CIDR format&amp;quot;
+    },
+    &amp;quot;VPCSubnet0CIDR&amp;quot; : {
+      &amp;quot;Description&amp;quot;: &amp;quot;The CIDR block for VPC subnet0 segment&amp;quot;,
+      &amp;quot;Type&amp;quot;: &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;Default&amp;quot;: &amp;quot;10.114.0.0/24&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be an IPv4 dotted quad plus slash plus network bit length in CIDR format&amp;quot;
+    },
+    &amp;quot;VPCSubnet1CIDR&amp;quot; : {
+      &amp;quot;Description&amp;quot;: &amp;quot;The CIDR block for VPC subnet1 segment&amp;quot;,
+      &amp;quot;Type&amp;quot;: &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;Default&amp;quot;: &amp;quot;10.114.1.0/24&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be an IPv4 dotted quad plus slash plus network bit length in CIDR format&amp;quot;
+    },
+    &amp;quot;VPCSubnet2CIDR&amp;quot; : {
+      &amp;quot;Description&amp;quot;: &amp;quot;The CIDR block for VPC subnet2 segment&amp;quot;,
+      &amp;quot;Type&amp;quot;: &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;Default&amp;quot;: &amp;quot;10.114.2.0/24&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be an IPv4 dotted quad plus slash plus network bit length in CIDR format&amp;quot;
+    }
+  },
+  &amp;quot;Resources&amp;quot; : {
+    &amp;quot;VPC&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::VPC&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;EnableDnsSupport&amp;quot; : &amp;quot;true&amp;quot;,
+        &amp;quot;EnableDnsHostnames&amp;quot; : &amp;quot;true&amp;quot;,
+        &amp;quot;CidrBlock&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;VPCNetworkCIDR&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;vpc&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot; : &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;VPCSubnet0&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::Subnet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;AvailabilityZone&amp;quot;: { &amp;quot;Fn::Select&amp;quot; : [ 0, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] },
+        &amp;quot;CidrBlock&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet0CIDR&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;subnet&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;AZ&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Select&amp;quot; : [ 0, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;VPCSubnet1&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::Subnet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;AvailabilityZone&amp;quot;: { &amp;quot;Fn::Select&amp;quot; : [ 1, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] },
+        &amp;quot;CidrBlock&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet1CIDR&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;subnet&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;AZ&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Select&amp;quot; : [ 1, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;VPCSubnet2&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::Subnet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;AvailabilityZone&amp;quot;: { &amp;quot;Fn::Select&amp;quot; : [ 2, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] },
+        &amp;quot;CidrBlock&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet2CIDR&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;subnet&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;AZ&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Select&amp;quot; : [ 2, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;InternetGateway&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::InternetGateway&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;igw&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;GatewayToInternet&amp;quot; : {
+       &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::VPCGatewayAttachment&amp;quot;,
+       &amp;quot;Properties&amp;quot; : {
+         &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+         &amp;quot;InternetGatewayId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;InternetGateway&amp;quot; }
+       }
+    },
+    &amp;quot;PublicRouteTable&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::RouteTable&amp;quot;,
+      &amp;quot;DependsOn&amp;quot; : &amp;quot;GatewayToInternet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;route&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot; : &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;PublicRoute&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::Route&amp;quot;,
+      &amp;quot;DependsOn&amp;quot; : &amp;quot;GatewayToInternet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;RouteTableId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;PublicRouteTable&amp;quot; },
+        &amp;quot;DestinationCidrBlock&amp;quot; : &amp;quot;0.0.0.0/0&amp;quot;,
+        &amp;quot;GatewayId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;InternetGateway&amp;quot; }
+      }
+    },
+    &amp;quot;VPCSubnet0RouteTableAssociation&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::SubnetRouteTableAssociation&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;SubnetId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPCSubnet0&amp;quot; },
+        &amp;quot;RouteTableId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;PublicRouteTable&amp;quot; }
+      }
+    },
+    &amp;quot;VPCSubnet1RouteTableAssociation&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::SubnetRouteTableAssociation&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;SubnetId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPCSubnet1&amp;quot; },
+        &amp;quot;RouteTableId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;PublicRouteTable&amp;quot; }
+      }
+    },
+    &amp;quot;VPCSubnet2RouteTableAssociation&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::SubnetRouteTableAssociation&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;SubnetId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPCSubnet2&amp;quot; },
+        &amp;quot;RouteTableId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;PublicRouteTable&amp;quot; }
+      }
+    },
+    &amp;quot;InstanceRole&amp;quot;: {
+      &amp;quot;Type&amp;quot;: &amp;quot;AWS::IAM::Role&amp;quot;,
+      &amp;quot;Properties&amp;quot;: {
+        &amp;quot;AssumeRolePolicyDocument&amp;quot;: {
+          &amp;quot;Version&amp;quot;: &amp;quot;2012-10-17&amp;quot;,
+          &amp;quot;Statement&amp;quot;: [
+            {
+              &amp;quot;Effect&amp;quot;: &amp;quot;Allow&amp;quot;,
+              &amp;quot;Principal&amp;quot;: {
+                &amp;quot;Service&amp;quot;: [ &amp;quot;ec2.amazonaws.com&amp;quot; ]
+              },
+              &amp;quot;Action&amp;quot;: [ &amp;quot;sts:AssumeRole&amp;quot; ]
+            }
+          ]
+        },
+        &amp;quot;Path&amp;quot;: &amp;quot;/&amp;quot;,
+        &amp;quot;Policies&amp;quot;: [
+          {
+            &amp;quot;PolicyName&amp;quot;: &amp;quot;ApplicationPolicy&amp;quot;,
+            &amp;quot;PolicyDocument&amp;quot;: {
+              &amp;quot;Version&amp;quot;: &amp;quot;2012-10-17&amp;quot;,
+              &amp;quot;Statement&amp;quot;: [
+                {
+                  &amp;quot;Effect&amp;quot;: &amp;quot;Allow&amp;quot;,
+                  &amp;quot;Action&amp;quot;: [
+                    &amp;quot;elasticbeanstalk:*&amp;quot;,
+                    &amp;quot;elastiCache:*&amp;quot;,
+                    &amp;quot;ec2:*&amp;quot;,
+                    &amp;quot;elasticloadbalancing:*&amp;quot;,
+                    &amp;quot;autoscaling:*&amp;quot;,
+                    &amp;quot;cloudwatch:*&amp;quot;,
+                    &amp;quot;dynamodb:*&amp;quot;,
+                    &amp;quot;s3:*&amp;quot;,
+                    &amp;quot;sns:*&amp;quot;,
+                    &amp;quot;sqs:*&amp;quot;,
+                    &amp;quot;cloudformation:*&amp;quot;,
+                    &amp;quot;rds:*&amp;quot;,
+                    &amp;quot;iam:AddRoleToInstanceProfile&amp;quot;,
+                    &amp;quot;iam:CreateInstanceProfile&amp;quot;,
+                    &amp;quot;iam:CreateRole&amp;quot;,
+                    &amp;quot;iam:PassRole&amp;quot;,
+                    &amp;quot;iam:ListInstanceProfiles&amp;quot;
+                  ],
+                  &amp;quot;Resource&amp;quot;: &amp;quot;*&amp;quot;
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    &amp;quot;InstanceProfile&amp;quot;: {
+       &amp;quot;Type&amp;quot;: &amp;quot;AWS::IAM::InstanceProfile&amp;quot;,
+       &amp;quot;Properties&amp;quot;: {
+          &amp;quot;Path&amp;quot;: &amp;quot;/&amp;quot;,
+          &amp;quot;Roles&amp;quot;: [ { &amp;quot;Ref&amp;quot;: &amp;quot;InstanceRole&amp;quot; } ]
+       }
+    },
+    &amp;quot;VPCSecurityGroup&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::SecurityGroup&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;GroupDescription&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;&amp;quot;, [ &amp;quot;VPC Security Group for &amp;quot;, { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } ] ] },
+        &amp;quot;SecurityGroupIngress&amp;quot; : [
+          {&amp;quot;IpProtocol&amp;quot;: &amp;quot;tcp&amp;quot;, &amp;quot;FromPort&amp;quot; : &amp;quot;22&amp;quot;,  &amp;quot;ToPort&amp;quot; : &amp;quot;22&amp;quot;,  &amp;quot;CidrIp&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;SSHFrom&amp;quot; }},
+          {&amp;quot;IpProtocol&amp;quot;: &amp;quot;tcp&amp;quot;, &amp;quot;FromPort&amp;quot;: &amp;quot;80&amp;quot;, &amp;quot;ToPort&amp;quot;: &amp;quot;80&amp;quot;, &amp;quot;CidrIp&amp;quot;: &amp;quot;0.0.0.0/0&amp;quot; },
+          {&amp;quot;IpProtocol&amp;quot;: &amp;quot;tcp&amp;quot;, &amp;quot;FromPort&amp;quot;: &amp;quot;443&amp;quot;, &amp;quot;ToPort&amp;quot;: &amp;quot;443&amp;quot;, &amp;quot;CidrIp&amp;quot;: &amp;quot;0.0.0.0/0&amp;quot; }
+        ],
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;sg&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot; : &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;VPCSGIngress&amp;quot;: {
+      &amp;quot;Type&amp;quot;: &amp;quot;AWS::EC2::SecurityGroupIngress&amp;quot;,
+      &amp;quot;Properties&amp;quot;: {
+        &amp;quot;GroupId&amp;quot;: { &amp;quot;Ref&amp;quot; : &amp;quot;VPCSecurityGroup&amp;quot; },
+        &amp;quot;IpProtocol&amp;quot;: &amp;quot;-1&amp;quot;,
+        &amp;quot;FromPort&amp;quot;: &amp;quot;0&amp;quot;,
+        &amp;quot;ToPort&amp;quot;: &amp;quot;65535&amp;quot;,
+        &amp;quot;SourceSecurityGroupId&amp;quot;: { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSecurityGroup&amp;quot; }
+      }
+    }
+  },
+  &amp;quot;Outputs&amp;quot; : {
+    &amp;quot;VpcId&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;VPC Id&amp;quot;,
+      &amp;quot;Value&amp;quot; :  { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; }
+    },
+    &amp;quot;VPCDefaultNetworkAcl&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;VPC&amp;quot;,
+      &amp;quot;Value&amp;quot; :  { &amp;quot;Fn::GetAtt&amp;quot; : [&amp;quot;VPC&amp;quot;, &amp;quot;DefaultNetworkAcl&amp;quot;] }
+    },
+    &amp;quot;VPCDefaultSecurityGroup&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;VPC Default Security Group that we blissfully ignore thanks to self-referencing bugs&amp;quot;,
+      &amp;quot;Value&amp;quot; :  { &amp;quot;Fn::GetAtt&amp;quot; : [&amp;quot;VPC&amp;quot;, &amp;quot;DefaultSecurityGroup&amp;quot;] }
+    },
+    &amp;quot;VPCSecurityGroup&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;VPC Security Group created by this stack&amp;quot;,
+      &amp;quot;Value&amp;quot; :  { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSecurityGroup&amp;quot; }
+    },
+    &amp;quot;VPCSubnet0&amp;quot;: {
+      &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet0&amp;quot;,
+      &amp;quot;Value&amp;quot;: {
+        &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet0&amp;quot;
+      }
+    },
+    &amp;quot;VPCSubnet1&amp;quot;: {
+      &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet1&amp;quot;,
+      &amp;quot;Value&amp;quot;: {
+        &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet1&amp;quot;
+      }
+    },
+    &amp;quot;VPCSubnet2&amp;quot;: {
+      &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet2&amp;quot;,
+      &amp;quot;Value&amp;quot;: {
+        &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet2&amp;quot;
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here is an example CloudFormation parameters file for this template:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;[
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;Project&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;myapp&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;Environment&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;dev&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;VPCNetworkCIDR&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;10.0.0.0/16&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;VPCSubnet0CIDR&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;10.0.0.0/24&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;VPCSubnet1CIDR&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;10.0.1.0/24&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;VPCSubnet2CIDR&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;10.0.2.0/24&amp;quot; }
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To script the creation, updating, watching, and deleting of the CloudFormation VPC, I have this Makefile as well:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;STACK:=myapp-dev
+TEMPLATE:=cloudformation-template_vpc-iam.json
+PARAMETERS:=cloudformation-parameters_myapp-dev.json
+AWS_REGION:=us-east-1
+AWS_PROFILE:=aws-dev
+
+all:
+    @which aws || pip install awscli
+    aws cloudformation create-stack --stack-name $(STACK) --template-body file://`pwd`/$(TEMPLATE) --parameters file://`pwd`/$(PARAMETERS) --capabilities CAPABILITY_IAM --profile $(AWS_PROFILE) --region $(AWS_REGION)
+
+update:
+    aws cloudformation update-stack --stack-name $(STACK) --template-body file://`pwd`/$(TEMPLATE) --parameters file://`pwd`/$(PARAMETERS) --capabilities CAPABILITY_IAM --profile $(AWS_PROFILE) --region $(AWS_REGION)
+
+events:
+    aws cloudformation describe-stack-events --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION)
+
+watch:
+    watch --interval 10 &amp;quot;bash -c &#39;make events | head -25&#39;&amp;quot;
+    
+output:
+    @which jq || ( which brew &amp;amp;&amp;amp; brew install jq || which apt-get &amp;amp;&amp;amp; apt-get install jq || which yum &amp;amp;&amp;amp; yum install jq || which choco &amp;amp;&amp;amp; choco install jq)
+    aws cloudformation describe-stacks --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION) | jq -r &#39;.Stacks[].Outputs&#39;
+
+delete:
+    aws cloudformation delete-stack --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION) 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can get these same files by cloning my github project, and ssuming you have a profile named &lt;code&gt;aws-dev&lt;/code&gt; as mentioned above, you can even run &lt;code&gt;make&lt;/code&gt; and have it create the &lt;code&gt;myapp-dev&lt;/code&gt; VPC via CloudFormation:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone https://github.com/ianblenke/aws-docker-walkthrough
+cd aws-docker-walkthrough
+make
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can run &lt;code&gt;make watch&lt;/code&gt; to watch the CloudFormation events and wait for a &lt;code&gt;CREATE_COMPLETE&lt;/code&gt; state.&lt;/p&gt;
+
+&lt;p&gt;When this is complete, you can see the CloudFormation outputs by running:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;make output
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The output will look something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;aws cloudformation describe-stacks --stack-name myapp-dev --profile aws-dev --region us-east-1 | jq -r &#39;.Stacks[].Outputs&#39;
+[
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Id&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VpcId&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;vpc-b7d1d8d2&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCDefaultNetworkAcl&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;acl-b3cfc7d6&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Default Security Group that we blissfully ignore thanks to self-referencing bugs&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCDefaultSecurityGroup&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;sg-3e50a559&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Security Group created by this stack&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSecurityGroup&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;sg-0c50a56b&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet0&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet0&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-995236b2&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet1&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet1&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-6aa4fd1d&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet2&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet2&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-ad3644f4&amp;quot;
+  },
+    {
+    &amp;quot;Description&amp;quot;: &amp;quot;The IAM instance profile for EC2 instances&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;InstanceProfile&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;myapp-dev-InstanceProfile-1KCQJP9M5TSVZ&amp;quot;
+  }
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These CloudFormation Outputs list parameters that we will need to pass to the ElasticBeanstalk Environment creation during the next part of this walkthrough.&lt;/p&gt;
+
+&lt;h1 id=&#34;one-final-vpc-note-iam-permissions-for-ec2-instance-profiles:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;One final VPC note: IAM permissions for EC2 instance profiles&lt;/h1&gt;
+
+&lt;p&gt;As a general rule of thumb, each AWS ElasticBanstalk Application Environment should be given its own IAM Instance Profile to use.&lt;/p&gt;
+
+&lt;p&gt;Each AWS EC2 instance should be allowed to assume an IAM role for an IAM instance profile that gives it access to the AWS cloud resources it must interface with.&lt;/p&gt;
+
+&lt;p&gt;This is accomplished by &lt;a href=&#34;http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html&#34;&gt;introspecting on AWS instance metadata&lt;/a&gt;. If you haven&amp;rsquo;t been exposed to this yet, I strongly recommend poking around at &lt;code&gt;http://169.254.169.254&lt;/code&gt; from your EC2 instances:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;curl http://169.254.169.254/latest/meta-data/iam/security-credentials/role-myapp-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The JSON returned from that command allows an AWS library call with no credentials automatically obtain time-limited IAM STS credentials when run on AWS EC2 instances.&lt;/p&gt;
+
+&lt;p&gt;This avoids having to embed &amp;ldquo;permanent&amp;rdquo; IAM access/secret keys as environment variables that may &amp;ldquo;leak&amp;rdquo; over time to parties that shouldn&amp;rsquo;t have access.&lt;/p&gt;
+
+&lt;p&gt;Early on, we tried to do this as an ebextension in &lt;code&gt;.ebextensions/00_iam.config&lt;/code&gt;, but this only works if the admin running the &lt;code&gt;eb create&lt;/code&gt; has IAM permissions for the AWS account, and it appears impossible to change the launch InstanceProfile by defining option settings or overriding cloud resources in an ebextensions config file.&lt;/p&gt;
+
+&lt;p&gt;Instead, the VPC above generates an &lt;code&gt;InstanceProfile&lt;/code&gt; that can be referenced later. More on that later in Part 2.&lt;/p&gt;
+
+&lt;p&gt;Stay tuned&amp;hellip;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

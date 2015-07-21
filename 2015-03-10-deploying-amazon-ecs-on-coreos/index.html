@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en-US" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keyword" content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>Deploying Amazon ECS on CoreOS</title>
+
+ 	
+	<link href="/css/journal.css" rel="stylesheet">
+
+ 	
+ 	<link href="/css/style.css" rel="stylesheet">
+</head>
+<body lang="en">
+	<div class="container">
+		<div class="row">
+			<div class="navbar navbar-default navbar-inverse" role="navigation">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="http://localhost:1313/">Ian Blenke</a> 
+				</div>
+				<div class="navbar-collapse collapse navbar-responsive-collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="http://localhost:1313/">Home</a></li>
+						<li><a href="http://localhost:1313//page/about/">About</a></li>
+						<li><a href="http://localhost:1313//page/resume/">Resume</a></li>
+						<li><a href="http://localhost:1313//post/">Blog</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<div class="container">	
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<h3>Deploying Amazon ECS on CoreOS</h3>
+			<span class="label label-primary">Tue Mar 10, 2015</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<br>
+			<p>Today, I stumbled on the official <a href="https://coreos.com/docs/running-coreos/cloud-providers/ecs/">CoreOS page on ECS</a>.</p>
+
+<p>I&rsquo;ve been putting off ECS for a while, it was time to give it a try.</p>
+
+<p>To create the ECS cluster, we will need the aws commandline tool:</p>
+
+<pre><code>which aws || pip install awscli
+</code></pre>
+
+<p>Make sure you have your <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> defined in your shell environment.</p>
+
+<p>Create the ECS cluster:</p>
+
+<pre><code>aws ecs create-cluster --cluster-name Cosmos-Dev
+{
+    &quot;cluster&quot;: {
+        &quot;clusterName&quot;: &quot;Cosmos-Dev&quot;,
+        &quot;status&quot;: &quot;ACTIVE&quot;,
+        &quot;clusterArn&quot;: &quot;arn:aws:ecs:us-east-1:123456789012:cluster/My-ECS-Cluster&quot;
+    }
+}
+</code></pre>
+
+<p>Install the global fleet unit for amazon-ecs-agent.service:</p>
+
+<pre><code>cat &lt;&lt;EOF &gt; amazon-ecs-agent.service
+[Unit]
+Description=Amazon ECS Agent
+After=docker.service
+Requires=docker.service
+[Service]
+Environment=ECS_CLUSTER=My-ECS-Cluster
+Environment=ECS_LOGLEVEL=warn
+Environment=AWS_REGION=us-east-1
+ExecStartPre=-/usr/bin/docker kill ecs-agent
+ExecStartPre=-/usr/bin/docker rm ecs-agent
+ExecStartPre=/usr/bin/docker pull amazon/amazon-ecs-agent
+ExecStart=/usr/bin/docker run --name ecs-agent \
+    --env=ECS_CLUSTER=${ECS_CLUSTER}\
+    --env=ECS_LOGLEVEL=${ECS_LOGLEVEL} \
+    --publish=127.0.0.1:51678:51678 \
+    --volume=/var/run/docker.sock:/var/run/docker.sock \
+    amazon/amazon-ecs-agent
+ExecStop=/usr/bin/docker stop ecs-agent
+[X-Fleet]
+Global=true
+EOF
+fleetctl start amazon-ecs-agent.service
+</code></pre>
+
+<p>This registers a ContainerInstance to the <code>My-ECS-Cluster</code> in region <code>us-east-1</code>.</p>
+
+<p>Note: this is using the EC2 instance&rsquo;s instance profile IAM credentials. You will want to make sure you&rsquo;ve assigned an instance profile with a Role that has &ldquo;ecs:*&rdquo; access.
+For this, you may want to take a look at the <a href="https://s3.amazonaws.com/amazon-ecs-cloudformation/Amazon_ECS_Quickstart.template">Amazon ECS Quickstart CloudFormation template</a>.</p>
+
+<p>Now from a CoreOS host, we can query locally to enumerate the running ContainerInstances in our fleet:</p>
+
+<pre><code>fleetctl list-machines -fields=ip -no-legend | while read ip ; do \
+    echo $ip $(ssh -n $ip curl -s http://169.254.169.254/latest/meta-data/instance-id) \
+    $(ssh -n $ip curl -s http://localhost:51678/v1/metadata | \
+      docker run -i realguess/jq jq .ContainerInstanceArn) ; \
+  done
+</code></pre>
+
+<p>Which returns something like:</p>
+
+<pre><code>10.113.0.23 i-12345678 &quot;arn:aws:ecs:us-east-1:123456789012:container-instance/674140ae-1234-4321-1234-4abf7878caba&quot;
+10.113.1.42 i-23456789 &quot;arn:aws:ecs:us-east-1:123456789012:container-instance/c3506771-1234-4321-1234-1f1b1783c924&quot;
+10.113.2.66 i-34567891 &quot;arn:aws:ecs:us-east-1:123456789012:container-instance/75d30c64-1234-4321-1234-8be8edeec9c6&quot;
+</code></pre>
+
+<p>And we can query ECS and get the same:</p>
+
+<pre><code>$ aws ecs list-container-instances --cluster My-ECS-Cluster | grep arn | cut -d'&quot;' -f2 | \
+  xargs -L1 -I% aws ecs describe-container-instances --cluster My-ECS-Cluster --container-instance % | \
+  jq '.containerInstances[] | .ec2InstanceId + &quot; &quot; + .containerInstanceArn'
+&quot;i-12345678 arn:aws:ecs:us-east-1:123456789012:container-instance/674140ae-1234-4321-1234-4abf7878caba&quot;
+&quot;i-23456789 arn:aws:ecs:us-east-1:123456789012:container-instance/c3506771-1234-4321-1234-1f1b1783c924&quot;
+&quot;i-34567891 arn:aws:ecs:us-east-1:123456789012:container-instance/75d30c64-1234-4321-1234-8be8edeec9c6&quot;
+</code></pre>
+
+<p>This ECS cluster is ready to use.</p>
+
+<p>Unfortunately, there is no scheduler here. ECS is a harness for orchestrating docker containers in a cluster as <em>tasks</em>.</p>
+
+<p>Where these tasks are allocated is left up to the AWS customer.</p>
+
+<p>What we really need is a <em>scheduler</em>.</p>
+
+<p>CoreOS has a form of a scheduler in fleet, but that is for fleet units of systemd services, and is not limited to docker containers as ECS is.
+Fleet&rsquo;s scheduler is also currently a bit weak in that it schedules new units to the fleet machine with the fewest number of units.</p>
+
+<p>Kubernetes has a random scheduler, which is better in a couple ways, but does not fairly allocate the system resources.</p>
+
+<p>The <em>best</em> scheduler at present is Mesos, which takes into account resource sizing estimates and current utilization.</p>
+
+<p>Normally, Mesos uses Mesos Slaves to run work. Mesos can also use ECS as a backend instead.</p>
+
+<p>My next steps: Deploy Mesos using the <a href="https://github.com/awslabs/ecs-mesos-scheduler-driver">ecs-mesos-scheduler-driver</a>, as <a href="http://jpetazzo.github.io/2015/01/14/amazon-docker-ecs-ec2-container-service/">summarized by jpetazzo</a></p>
+
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<hr>
+		</div>
+	</div>	
+</div>
+
+  <div class="container">
+    <div class="row col-md-12">
+          <footer>
+            <div>
+                <p>
+                    &copy; 2014  ~ Powered By <a href="http://hugo.spf13.com">Hugo</a>
+                </p>
+            </div>
+            </footer>
+        </div>
+    </div>
+
+    
+    
+    <script src="/js/jquery-min-2.1.1.js"></script>
+    <script src="/js/bootstrap.min-3.1.1.js"></script>
+    </body>
+</html>

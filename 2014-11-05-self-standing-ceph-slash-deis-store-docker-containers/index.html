@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en-US" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keyword" content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>Self-standing Ceph/deis-store docker containers</title>
+
+ 	
+	<link href="/css/journal.css" rel="stylesheet">
+
+ 	
+ 	<link href="/css/style.css" rel="stylesheet">
+</head>
+<body lang="en">
+	<div class="container">
+		<div class="row">
+			<div class="navbar navbar-default navbar-inverse" role="navigation">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="http://localhost:1313/">Ian Blenke</a> 
+				</div>
+				<div class="navbar-collapse collapse navbar-responsive-collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="http://localhost:1313/">Home</a></li>
+						<li><a href="http://localhost:1313//page/about/">About</a></li>
+						<li><a href="http://localhost:1313//page/resume/">Resume</a></li>
+						<li><a href="http://localhost:1313//post/">Blog</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<div class="container">	
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<h3>Self-standing Ceph/deis-store docker containers</h3>
+			<span class="label label-primary">Wed Nov 5, 2014</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<br>
+			<p>A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.</p>
+
+<p>As Docker is meant for immutable infrastructure, this poses somewhat of a challenge for production deployments. Rather than tackle that subject here, we&rsquo;ll revisit persistence on immutable infrastructure in a production capacity in a future blog post.</p>
+
+<p>The first challenge is identifying an S3 implementation to throw into a container.</p>
+
+<p>There are a few feature sparse/dummy solutions that might suit development needs:</p>
+
+<ul>
+<li><a href="http://s3ninja.net/">s3-ninja</a> (github <a href="https://github.com/scireum/s3ninja">scireum/s3ninja</a>)</li>
+<li><a href="https://github.com/jubos/fake-s3">fake-s3</a></li>
+<li><a href="http://sourceforge.net/projects/s3mockup/">S3Mockup</a>
+(and a number of others which I&rsquo;d rather not even consider)</li>
+</ul>
+
+<p>There are a number of good functional options for actual S3 implementations:</p>
+
+<ul>
+<li><a href="http://ceph.com">ceph</a> (github <a href="https://github.com/ceph/ceph">ceph/ceph</a>), specifically the <a href="http://ceph.com/docs/master/radosgw/">radosgw</a></li>
+<li><a href="https://github.com/eucalyptus/eucalyptus/wiki/Walrus-S3-API">walrus</a> from Eucalyptus</li>
+<li><a href="http://basho.com/riak-cloud-storage/">riak cs</a></li>
+<li><a href="http://www.skylable.com/download/#LibreS3">libres3</a>, backended by the opensource <a href="http://www.skylable.com/download/#SX">Skylable Sx</a></li>
+<li><a href="https://github.com/nimbusproject/nimbus/tree/master/cumulus">cumulus</a> is an S3 implementation for <a href="http://www.nimbusproject.org/docs/current/faq.html#cumulus">Nimbus</a></li>
+<li><a href="http://www.cloudian.com/community-edition.php">cloudian</a> which is a non-opensource commercial product</li>
+<li><a href="https://github.com/stackforge/swift3">swift3</a> as an S3 compatibility layer with swift on the backend</li>
+<li><a href="https://github.com/cloudfoundry-attic/vblob">vblob</a> a node.js based attic&rsquo;ed project at CloudFoundry</li>
+<li><a href="https://github.com/mattjamieson/parkplace">parkplace</a> backended by bittorrent</li>
+<li><a href="https://github.com/razerbeans/boardwalk">boardwalk</a> backended by ruby, sinatra, and mongodb</li>
+</ul>
+
+<p>Of the above, one stands out as the underlying persistence engine used by a larger docker backended project: <a href="http://deis.io">Deis</a></p>
+
+<p>Rather than re-invent the wheel, it is possible to use deis-store directly.</p>
+
+<p>As Deis deploys on CoreOS, there is an understandable inherent dependency on <a href="http://github.com/coreos/etcd/">etcd</a> for service discovery.</p>
+
+<p>If you happen to be targeting CoreOS, you can simply point your etcd &ndash;peers option or <code>ETCD_HOST</code> environment variable at <code>$COREOS_PRIVATE_IPV4</code> and skip this next step.</p>
+
+<p>First, make sure your environment includes the <code>DOCKER_HOST</code> and related variables for the boot2docker environment:</p>
+
+<p>{% gist cab2661e67f5d79ae9bd %}</p>
+
+<p>Now, discover the IP of the boot2docker guest VM, as that is what we will bind the etcd to:</p>
+
+<p>{% gist 00d61147bbf81ca26d2d %}</p>
+
+<p>Next, we can spawn etcd and publish the ports for the other containers to use:</p>
+
+<p>{% gist 3a47603ef0561e54ecb6 %}</p>
+
+<p>Normally, we wouldn&rsquo;t put the etcd persistence in a tmpfs for consistency reasons after a reboot, but for a development container: we love speed!</p>
+
+<p>Now that we have an etcd container running, we can spawn the deis-store daemon container that runs the ceph object-store daemon (OSD) module.</p>
+
+<p>{% gist c05525539a9f38e51e4b %}</p>
+
+<p>It is probably a good idea to mount the /var/lib/deis/store volume for persistence, but this is a developer container, so we&rsquo;ll forego that step.</p>
+
+<p>The ceph-osd will wait in a loop when starting until it can talk to ceph-mon, which is the next component provided by the deis-store monitor container.</p>
+
+<p>In order to prepare the etcd config tree for deis-store monitor, we must first set a key for this new deis-store-daemon component.</p>
+
+<p>While we could do that with a wget/curl PUT to the etcd client port (4001), using etcdctl makes things a bit easier.</p>
+
+<p>It is generally a good idea to match the version of the etcdctl client with the version of etcd you are using.</p>
+
+<p>As the CoreOS team doesn&rsquo;t put out an etcdctl container as of yet, one way to do this is to build/install etcdctl inside a coreos/etcd container:</p>
+
+<p>{% gist 4fcf5bcca7077a85e7ce %}</p>
+
+<p>This isn&rsquo;t ideal, of course, as there is a slight delay as etcdctl is built and installed before we use it, but it serves the purpose.</p>
+
+<p>There are also <a href="http://docs.deis.io/en/latest/managing_deis/store_daemon_settings/">deis/store-daemon settings</a> of etcd keys that customize the behavior of ceph-osd a bit.</p>
+
+<p>Now we can start deis-store-monitor, which will use that key to spin up a ceph-mon that monitors this (and any other) ceph-osd instances likewise registered in the etcd configuration tree.</p>
+
+<p>{% gist 543a13ba9410f6cf2f8e %}</p>
+
+<p>As before, there are volumes that probably should be mounted for /etc/ceph and /var/lib/ceph/mon, but this is a development image, so we&rsquo;ll skip that.</p>
+
+<p>There are also <a href="http://docs.deis.io/en/latest/managing_deis/store_monitor_settings/">deis/store-monitor settings</a> of etcd keys that customize the behavior of ceph-mon a bit.</p>
+
+<p>Now that ceph-mon is running, ceph-osd will continue starting up. We now have a single-node self-standing ceph storage platform, but no S3.</p>
+
+<p>The S3 functionality is provided by the ceph-radosgw component, which is provided by the deis-store-gateway container.</p>
+
+<p>{% gist 5634583a93347c415b3d %}</p>
+
+<p>There is no persistence in ceph-radosgw that warrant a volume mapping, so we can ignore that entirely regardless of environment.</p>
+
+<p>There are also <a href="http://docs.deis.io/en/latest/managing_deis/store_gateway_settings/">deis/store-gateway settings</a> of etcd keys that customize the behavior of ceph-radosgw a bit.</p>
+
+<p>We now have a functional self-standing S3 gateway, but we don&rsquo;t know the credentials to use it. For that, we can run etcdctl again:</p>
+
+<p>{% gist 9c43ccd03c6c082073b7 %}</p>
+
+<p>Note that the host here isn&rsquo;t the normal AWS gateway address, so you will need to specify things for your S3 client to access it correctly.</p>
+
+<p>Likewise, you may need to specify an URL scheme of &ldquo;http&rdquo;, as the above does not expose an HTTPS encrypted port.</p>
+
+<p>There are also S3 client changes that <a href="https://github.com/deis/deis/issues/2326">may be necessary</a> depending on the &ldquo;calling format&rdquo; of the client libraries. You may need to <a href="http://stackoverflow.com/questions/24312350/using-paperclip-fog-and-ceph">changes things like paperclip</a> to <a href="https://github.com/thoughtbot/paperclip/issues/1577">work with fog</a>. There are numerous tools that work happily with ceph, like <a href="https://github.com/stiller/s3_to_ceph/blob/master/s3_to_ceph.rb">s3_to_ceph</a> and even gems like <a href="https://github.com/fog/fog-radosgw">fog-radosgw</a> that try and help make this painless for your apps.</p>
+
+<p>I will update this blog post shortly with an example of a containerized s3 client to show how to prove your ceph radosgw is working.</p>
+
+<p>Have fun!</p>
+
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<hr>
+		</div>
+	</div>	
+</div>
+
+  <div class="container">
+    <div class="row col-md-12">
+          <footer>
+            <div>
+                <p>
+                    &copy; 2014  ~ Powered By <a href="http://hugo.spf13.com">Hugo</a>
+                </p>
+            </div>
+            </footer>
+        </div>
+    </div>
+
+    
+    
+    <script src="/js/jquery-min-2.1.1.js"></script>
+    <script src="/js/bootstrap.min-3.1.1.js"></script>
+    </body>
+</html>

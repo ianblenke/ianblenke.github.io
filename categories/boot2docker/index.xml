@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Boot2docker on Ian Blenke</title>
+    <link>http://ian.blenke.com/categories/boot2docker/</link>
+    <description>Recent content in Boot2docker on Ian Blenke</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <lastBuildDate>Wed, 05 Nov 2014 14:40:59 -0500</lastBuildDate>
+    <atom:link href="http://ian.blenke.com/categories/boot2docker/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Self-standing Ceph/deis-store docker containers</title>
+      <link>http://ian.blenke.com/post/2014-11-05-self-standing-ceph-slash-deis-store-docker-containers/</link>
+      <pubDate>Wed, 05 Nov 2014 14:40:59 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-05-self-standing-ceph-slash-deis-store-docker-containers/</guid>
+      <description>&lt;p&gt;A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.&lt;/p&gt;
+
+&lt;p&gt;As Docker is meant for immutable infrastructure, this poses somewhat of a challenge for production deployments. Rather than tackle that subject here, we&amp;rsquo;ll revisit persistence on immutable infrastructure in a production capacity in a future blog post.&lt;/p&gt;
+
+&lt;p&gt;The first challenge is identifying an S3 implementation to throw into a container.&lt;/p&gt;
+
+&lt;p&gt;There are a few feature sparse/dummy solutions that might suit development needs:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://s3ninja.net/&#34;&gt;s3-ninja&lt;/a&gt; (github &lt;a href=&#34;https://github.com/scireum/s3ninja&#34;&gt;scireum/s3ninja&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jubos/fake-s3&#34;&gt;fake-s3&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://sourceforge.net/projects/s3mockup/&#34;&gt;S3Mockup&lt;/a&gt;
+(and a number of others which I&amp;rsquo;d rather not even consider)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are a number of good functional options for actual S3 implementations:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://ceph.com&#34;&gt;ceph&lt;/a&gt; (github &lt;a href=&#34;https://github.com/ceph/ceph&#34;&gt;ceph/ceph&lt;/a&gt;), specifically the &lt;a href=&#34;http://ceph.com/docs/master/radosgw/&#34;&gt;radosgw&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/eucalyptus/eucalyptus/wiki/Walrus-S3-API&#34;&gt;walrus&lt;/a&gt; from Eucalyptus&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://basho.com/riak-cloud-storage/&#34;&gt;riak cs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.skylable.com/download/#LibreS3&#34;&gt;libres3&lt;/a&gt;, backended by the opensource &lt;a href=&#34;http://www.skylable.com/download/#SX&#34;&gt;Skylable Sx&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/nimbusproject/nimbus/tree/master/cumulus&#34;&gt;cumulus&lt;/a&gt; is an S3 implementation for &lt;a href=&#34;http://www.nimbusproject.org/docs/current/faq.html#cumulus&#34;&gt;Nimbus&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cloudian.com/community-edition.php&#34;&gt;cloudian&lt;/a&gt; which is a non-opensource commercial product&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/stackforge/swift3&#34;&gt;swift3&lt;/a&gt; as an S3 compatibility layer with swift on the backend&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/cloudfoundry-attic/vblob&#34;&gt;vblob&lt;/a&gt; a node.js based attic&amp;rsquo;ed project at CloudFoundry&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/mattjamieson/parkplace&#34;&gt;parkplace&lt;/a&gt; backended by bittorrent&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/razerbeans/boardwalk&#34;&gt;boardwalk&lt;/a&gt; backended by ruby, sinatra, and mongodb&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Of the above, one stands out as the underlying persistence engine used by a larger docker backended project: &lt;a href=&#34;http://deis.io&#34;&gt;Deis&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Rather than re-invent the wheel, it is possible to use deis-store directly.&lt;/p&gt;
+
+&lt;p&gt;As Deis deploys on CoreOS, there is an understandable inherent dependency on &lt;a href=&#34;http://github.com/coreos/etcd/&#34;&gt;etcd&lt;/a&gt; for service discovery.&lt;/p&gt;
+
+&lt;p&gt;If you happen to be targeting CoreOS, you can simply point your etcd &amp;ndash;peers option or &lt;code&gt;ETCD_HOST&lt;/code&gt; environment variable at &lt;code&gt;$COREOS_PRIVATE_IPV4&lt;/code&gt; and skip this next step.&lt;/p&gt;
+
+&lt;p&gt;First, make sure your environment includes the &lt;code&gt;DOCKER_HOST&lt;/code&gt; and related variables for the boot2docker environment:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eval $(boot2docker shellinit)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now, discover the IP of the boot2docker guest VM, as that is what we will bind the etcd to:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;IP=&amp;quot;$(boot2docker ip 2&amp;gt;/dev/null)&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next, we can spawn etcd and publish the ports for the other containers to use:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name etcd \
+           --publish 4001:4001 \
+           --publish 7001:7001 \
+           --detach \
+           coreos/etcd:latest \
+           /go/bin/app -listen-client-urls http://0.0.0.0:4001 \
+                       -advertise-client-urls http://$IP:4001 \
+                       -listen-peer-urls http://0.0.0.0:7001 \
+                       -initial-advertise-peer-urls http://$IP:7001 \
+                       -data-dir=/tmp/etcd
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Normally, we wouldn&amp;rsquo;t put the etcd persistence in a tmpfs for consistency reasons after a reboot, but for a development container: we love speed!&lt;/p&gt;
+
+&lt;p&gt;Now that we have an etcd container running, we can spawn the deis-store daemon container that runs the ceph object-store daemon (OSD) module.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-daemon \
+           --volumes-from=deis-store-daemon-data \
+           --env HOST=$IP \
+           --publish 6800 \
+           --net host \
+           --detach \
+           deis/store-daemon:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It is probably a good idea to mount the /var/lib/deis/store volume for persistence, but this is a developer container, so we&amp;rsquo;ll forego that step.&lt;/p&gt;
+
+&lt;p&gt;The ceph-osd will wait in a loop when starting until it can talk to ceph-mon, which is the next component provided by the deis-store monitor container.&lt;/p&gt;
+
+&lt;p&gt;In order to prepare the etcd config tree for deis-store monitor, we must first set a key for this new deis-store-daemon component.&lt;/p&gt;
+
+&lt;p&gt;While we could do that with a wget/curl PUT to the etcd client port (4001), using etcdctl makes things a bit easier.&lt;/p&gt;
+
+&lt;p&gt;It is generally a good idea to match the version of the etcdctl client with the version of etcd you are using.&lt;/p&gt;
+
+&lt;p&gt;As the CoreOS team doesn&amp;rsquo;t put out an etcdctl container as of yet, one way to do this is to build/install etcdctl inside a coreos/etcd container:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --rm \
+           coreos/etcd \
+           /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; \
+                       go install ; \
+                       /go/bin/etcdctl --peers $IP:4001 \
+                       set /deis/store/hosts/$IP $IP&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This isn&amp;rsquo;t ideal, of course, as there is a slight delay as etcdctl is built and installed before we use it, but it serves the purpose.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_daemon_settings/&#34;&gt;deis/store-daemon settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-osd a bit.&lt;/p&gt;
+
+&lt;p&gt;Now we can start deis-store-monitor, which will use that key to spin up a ceph-mon that monitors this (and any other) ceph-osd instances likewise registered in the etcd configuration tree.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-monitor \
+           --env HOST=$IP \
+           --publish 6789 \
+           --net host \
+           --detach \
+           deis/store-monitor:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As before, there are volumes that probably should be mounted for /etc/ceph and /var/lib/ceph/mon, but this is a development image, so we&amp;rsquo;ll skip that.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_monitor_settings/&#34;&gt;deis/store-monitor settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-mon a bit.&lt;/p&gt;
+
+&lt;p&gt;Now that ceph-mon is running, ceph-osd will continue starting up. We now have a single-node self-standing ceph storage platform, but no S3.&lt;/p&gt;
+
+&lt;p&gt;The S3 functionality is provided by the ceph-radosgw component, which is provided by the deis-store-gateway container.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-gateway \
+           --hostname deis-store-gateway \
+           --env HOST=$IP \
+           --env EXTERNAL_PORT=8888 \
+           --publish 8888:8888 \
+           --detach \
+           deis/store-gateway:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There is no persistence in ceph-radosgw that warrant a volume mapping, so we can ignore that entirely regardless of environment.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_gateway_settings/&#34;&gt;deis/store-gateway settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-radosgw a bit.&lt;/p&gt;
+
+&lt;p&gt;We now have a functional self-standing S3 gateway, but we don&amp;rsquo;t know the credentials to use it. For that, we can run etcdctl again:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;AWS_ACCESS_KEY_ID=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/accessKey&amp;quot;)
+AWS_SECRET_ACCESS_KEY=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/secretKey&amp;quot;)
+AWS_S3_HOST=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/host&amp;quot;)
+AWS_S3_PORT=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/port&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note that the host here isn&amp;rsquo;t the normal AWS gateway address, so you will need to specify things for your S3 client to access it correctly.&lt;/p&gt;
+
+&lt;p&gt;Likewise, you may need to specify an URL scheme of &amp;ldquo;http&amp;rdquo;, as the above does not expose an HTTPS encrypted port.&lt;/p&gt;
+
+&lt;p&gt;There are also S3 client changes that &lt;a href=&#34;https://github.com/deis/deis/issues/2326&#34;&gt;may be necessary&lt;/a&gt; depending on the &amp;ldquo;calling format&amp;rdquo; of the client libraries. You may need to &lt;a href=&#34;http://stackoverflow.com/questions/24312350/using-paperclip-fog-and-ceph&#34;&gt;changes things like paperclip&lt;/a&gt; to &lt;a href=&#34;https://github.com/thoughtbot/paperclip/issues/1577&#34;&gt;work with fog&lt;/a&gt;. There are numerous tools that work happily with ceph, like &lt;a href=&#34;https://github.com/stiller/s3_to_ceph/blob/master/s3_to_ceph.rb&#34;&gt;s3_to_ceph&lt;/a&gt; and even gems like &lt;a href=&#34;https://github.com/fog/fog-radosgw&#34;&gt;fog-radosgw&lt;/a&gt; that try and help make this painless for your apps.&lt;/p&gt;
+
+&lt;p&gt;I will update this blog post shortly with an example of a containerized s3 client to show how to prove your ceph radosgw is working.&lt;/p&gt;
+
+&lt;p&gt;Have fun!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Using Boot2Docker</title>
+      <link>http://ian.blenke.com/post/2014-11-04-using-boot2docker/</link>
+      <pubDate>Tue, 04 Nov 2014 23:13:25 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-04-using-boot2docker/</guid>
+      <description>
+
+&lt;h2 id=&#34;boot2docker-command-line:ba823fb38ea943dd7bd22d9529975abb&#34;&gt;Boot2Docker command-line&lt;/h2&gt;
+
+&lt;p&gt;Preface: the &lt;a href=&#34;https://github.com/boot2docker/boot2docker&#34;&gt;boot2docker README&lt;/a&gt; is a great place to discover the below commands in more detail.&lt;/p&gt;
+
+&lt;p&gt;Now that we have Boot2Docker installed, we need to initialize a VM instance&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker init
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This merely defines the default boot2docker VM, it does not start it. To do that, we need to bring it &amp;ldquo;up&amp;rdquo;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker up
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When run, it looks something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;icbcfmbp:~ icblenke$ boot2docker up
+Waiting for VM and Docker daemon to start...
+..........ooo
+Started.
+Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/ca.pem
+Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/cert.pem
+Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/key.pem
+
+To connect the Docker client to the Docker daemon, please set:
+    export DOCKER_CERT_PATH=/Users/icblenke/.boot2docker/certs/boot2docker-vm
+    export DOCKER_TLS_VERIFY=1
+    export DOCKER_HOST=tcp://192.168.59.103:2376
+
+icbcfmbp:~ icblenke$
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is all fine and dandy, but that shell didn&amp;rsquo;t actually source those variables. To do that we use boot2docker shellinit:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eval $(boot2docker shellinit)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now the shell has those variables exported for the running boot2docker VM.&lt;/p&gt;
+
+&lt;p&gt;The persistence of the boot2docker VM lasts only until we run a boot2docker destroy&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After doing this, there is no longer a VM defined. We would need to go back to the boot2docker init step above and repeat.&lt;/p&gt;
+
+&lt;h2 id=&#34;docker-command-line:ba823fb38ea943dd7bd22d9529975abb&#34;&gt;Docker command-line&lt;/h2&gt;
+
+&lt;p&gt;From this point forward, we use the docker command to interact with the boot2docker VM as if we are on a linux docker host.&lt;/p&gt;
+
+&lt;p&gt;The docker command is just a compiled go application that makes RESTful calls to the docker daemon inside the linux VM.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bash-3.2$ docker info
+Containers: 0
+Images: 0
+Storage Driver: aufs
+ Root Dir: /mnt/sda1/var/lib/docker/aufs
+  Dirs: 0
+  Execution Driver: native-0.2
+  Kernel Version: 3.16.4-tinycore64
+  Operating System: Boot2Docker 1.3.1 (TCL 5.4); master : 9a31a68 - Fri Oct 31 03:14:34 UTC 2014
+  Debug mode (server): true
+  Debug mode (client): false
+  Fds: 10
+  Goroutines: 11
+  EventsListeners: 0
+  Init Path: /usr/local/bin/docker
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This holds true for both OS/X and Windows.&lt;/p&gt;
+
+&lt;p&gt;The boot2docker facade is just a handy wrapper to prepare the guest linux host VM for the docker daemin and local docker command-line client for your development host OS environment.&lt;/p&gt;
+
+&lt;p&gt;And now you have a starting point for exploring &lt;a href=&#34;http://docker.io&#34;&gt;Docker&lt;/a&gt;!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Installing Boot2Docker</title>
+      <link>http://ian.blenke.com/post/2014-11-04-installing-boot2docker/</link>
+      <pubDate>Tue, 04 Nov 2014 22:41:53 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-04-installing-boot2docker/</guid>
+      <description>
+
+&lt;p&gt;Starting with a new team of developers, it helps to document the bootstrapping steps to a development environment.&lt;/p&gt;
+
+&lt;p&gt;Rather than try and use a convergence tool like Chef, Puppet, Ansible, or SALT, this time the environment will embrace Docker.&lt;/p&gt;
+
+&lt;p&gt;We could use a tool like Vagrant, but we need to support both Windows and Mac development workstations, and Vagrant under Windows can be vexing.&lt;/p&gt;
+
+&lt;p&gt;For this, we will begin anew using &lt;a href=&#34;http://boot2docker.io&#34;&gt;Boot2Docker&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Before we begin, be sure to install &lt;a href=&#34;https://www.virtualbox.org/&#34;&gt;VirtualBox&lt;/a&gt; from Oracle&amp;rsquo;s &lt;a href=&#34;https://www.virtualbox.org/&#34;&gt;VirtualBox.org website&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The easiest way to install VirtualBox is to use &lt;a href=&#34;http://caskroom.io/&#34;&gt;HomeBrew Cask&lt;/a&gt; under &lt;a href=&#34;http://brew.sh&#34;&gt;HomeBrew&lt;/a&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;brew install caskroom/cask/brew-cask
+brew cask install virtualbox
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The easiest way to install boot2docker is to use &lt;a href=&#34;http://brew.sh&#34;&gt;HomeBrew&lt;/a&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;brew install boot2docker
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Afterward, be sure to upgrade the homebrew bottle to the latest version of boot2docker:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker upgrade
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, a sample commandline install of boot2docker might look like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget https://github.com/boot2docker/osx-installer/releases/download/v1.3.1/Boot2Docker-1.3.1.pkg
+sudo installer -pkg ~/Downloads/Boot2Docker-1.3.1.pkg -target /
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I&amp;rsquo;ll leave the commandline install of VirtualBox up to your imagination. With &lt;a href=&#34;http://caskroom.io&#34;&gt;HomeBrew Cask&lt;/a&gt;, there&amp;rsquo;s really not much of a point.&lt;/p&gt;
+
+&lt;p&gt;If you&amp;rsquo;re still not comfortable, below is a pictoral screenshot guide to installing boot2docker the point-and-click way.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-0:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 0&lt;/h2&gt;
+
+&lt;p&gt;Download &lt;a href=&#34;https://github.com/boot2docker/osx-installer/releases&#34;&gt;boot2docker for OS/X&lt;/a&gt; or &lt;a href=&#34;https://github.com/boot2docker/windows-installer/releases&#34;&gt;boot2docker for Windows&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-1:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 1&lt;/h2&gt;
+
+&lt;p&gt;Run the downloaded Boot2Docker.pkg or docker-install.exe to kick off the installer.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step1-downloads.png&#34; alt=&#34;Boot2docker.pkg in Downloads folder&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-2:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 2&lt;/h2&gt;
+
+&lt;p&gt;Click the Continue button to allow the installer to run a program to detect if boot2docker can be installed.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step2-run-a-program.png&#34; alt=&#34;Allow installer to run a program to detect if boot2docker can be installed&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-3:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 3&lt;/h2&gt;
+
+&lt;p&gt;Click the Continue button to proceed beyond the initial installation instructions dialog.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step3-install-splash.png&#34; alt=&#34;Instructions to install boot2docker&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-4:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 4&lt;/h2&gt;
+
+&lt;p&gt;The installer will now ask for an admin username/password to obtain admin rights to install boot2docker.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step4-enter-password.png&#34; alt=&#34;Installer asks for admin rights to install boot2docker&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-5:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 5&lt;/h2&gt;
+
+&lt;p&gt;Before installing, the installer will advise how much space the install will take. Click the Install button to start the actual install.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step5-standard-install.png&#34; alt=&#34;Advice on how much space boot2docker will take when installed&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-6:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 6&lt;/h2&gt;
+
+&lt;p&gt;When the installation is successfully, click the Close button to exit the installer.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step6-install-completed-successfully.png&#34; alt=&#34;Install completed successfully&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-7:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 7&lt;/h2&gt;
+
+&lt;p&gt;You now have a shiny icon for boot2docker in /Applications you can click on to start a boot2docker terminal window session.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step7-installed-boot2docker-app.png&#34; alt=&#34;Boot2docker app is in Applications&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Congrats. You now have boot2docker installed.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

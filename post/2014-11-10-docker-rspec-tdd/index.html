@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en-US" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keyword" content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>Docker rspec TDD</title>
+
+ 	
+	<link href="/css/journal.css" rel="stylesheet">
+
+ 	
+ 	<link href="/css/style.css" rel="stylesheet">
+</head>
+<body lang="en">
+	<div class="container">
+		<div class="row">
+			<div class="navbar navbar-default navbar-inverse" role="navigation">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="http://ian.blenke.com/">Ian Blenke</a> 
+				</div>
+				<div class="navbar-collapse collapse navbar-responsive-collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="http://ian.blenke.com/">Home</a></li>
+						<li><a href="http://ian.blenke.com//page/about/">About</a></li>
+						<li><a href="http://ian.blenke.com//page/resume/">Resume</a></li>
+						<li><a href="http://ian.blenke.com//post/">Blog</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<div class="container">	
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<h3>Docker rspec TDD</h3>
+				<span class="label label-primary">Mon Nov 10, 2014</span> in 
+				
+					
+					<a href="/categories/docker">docker</a>
+				
+					 , 
+					<a href="/categories/rspec">rspec</a>
+				
+					 , 
+					<a href="/categories/tdd">tdd</a>
+				 using tags 			 
+				
+			</small>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<br>
+			<p>A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other important interfaces.</p>
+
+<p>Test-Driven Design should drive a developer toward implementation details, not the other way around.</p>
+
+<p>A devops without tests is a sad devops indeed.</p>
+
+<p>Working toward a docker based development environment, my first thoughts were toward <a href="http://serverspec.org/">Serverspec</a> by <a href="https://github.com/mizzy">Gosuke Miayshita</a>, as it is entirely framework agnostic. Gosuke gave an excellent presentation at ChefConf this year re-inforcing that Serverspec is <em>not</em> a chef centric tool, and works quite well in conjunction with other configuration management tools.</p>
+
+<p>Researching Serverspec and docker a bit more, <a href="https://github.com/tcnksm">Taichi Nakashima</a> based his <a href="https://github.com/tcnksm-sample/docker-rspec">TDD of Dockerfile by RSpec on OS/X</a> using ssh.</p>
+
+<p>With Docker 1.3 and later, there is a &ldquo;docker exec&rdquo; interactive docker API for allowing live sessions on processes spawned in the same process namespace as a running container, effectively allowing external access into a running docker container using only the docker API.</p>
+
+<p><a href="http://blog.wercker.com/2013/12/23/Test-driven-development-for-docker.html">PIETER JOOST VAN DE SANDE</a> posted about using the docker-api to accomplish the goal of testing a Dockerfile. His work is based on the <a href="https://rubygems.org/gems/docker-api">docker-api</a> gem (github <a href="https://github.com/swipely/docker-api">swipely/docker-api</a>).</p>
+
+<p>Looking into the docker-api source, there is no support yet for docker 1.3&rsquo;s exec API interface to run Serverspec tests against the contents of a running docker container.</p>
+
+<p>Attempting even the most basic docker API calls with docker-api, <a href="https://github.com/swipely/docker-api/issues/202">issue 202</a> made it apparent that TLS support for boot2docker would need to be addressed first.</p>
+
+<p>Here is my functional <code>spec_helper.rb</code> with the fixes necessary to use docker-api without modifications:</p>
+
+<pre><code>require &quot;docker&quot;
+
+docker_host = ENV['DOCKER_HOST'].dup
+
+if(ENV['DOCKER_TLS_VERIFY'])
+  cert_path = File.expand_path ENV['DOCKER_CERT_PATH']
+  Docker.options = {
+    client_cert: File.join(cert_path, 'cert.pem'),
+    client_key: File.join(cert_path, 'key.pem')
+  }
+  Excon.defaults[:ssl_ca_file] = File.join(cert_path, 'ca.pem')
+  docker_host.gsub!(/^tcp/,'https')
+end
+
+Docker.url = docker_host
+</code></pre>
+
+<p>Following this, I can drive the generation of a Dockerfile with a spec:</p>
+
+<pre><code>require &quot;spec_helper&quot;
+
+describe &quot;dockerfile built my_app image&quot; do
+  before(:all) do
+    @image = Docker::Image.all(:all =&gt; true).find { |image|
+      Docker::Util.parse_repo_tag( image.info['RepoTags'].first ).first == 'my_app'
+    }
+    p @image.json[&quot;Env&quot;]
+  end
+
+  it &quot;should exist&quot; do
+    expect(@image).not_to be_nil
+  end
+
+  it &quot;should have CMD&quot; do
+    expect(@image.json[&quot;Config&quot;][&quot;Cmd&quot;]).to include(&quot;/run.sh&quot;)
+  end
+
+  it &quot;should expose the default port&quot; do
+    expect(@image.json[&quot;Config&quot;][&quot;ExposedPorts&quot;].has_key?(&quot;3000/tcp&quot;)).to be_truthy
+  end
+
+  it &quot;should have environmental variable&quot; do
+    expect(@image.json[&quot;Config&quot;][&quot;Env&quot;]).to include(&quot;HOME=/usr/src/app&quot;)
+  end
+end
+</code></pre>
+
+<p>This drives me iteratively to write a Dockerfile that looks like:</p>
+
+<pre><code>FROM rails:onbuild
+ENV HOME /usr/src/app
+ADD docker/run.sh /run.sh
+RUN chmod 755 /run.sh
+EXPOSE 3000
+CMD /run.sh
+</code></pre>
+
+<p>Next step: extend docker-api to support exec for serverspec based testing of actual docker image contents.</p>
+
+<p>Sláinte!</p>
+
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<hr>
+		</div>
+	</div>	
+</div>
+
+  <div class="container">
+    <div class="row col-md-12">
+          <footer>
+            <div>
+                <p>
+                    &copy; 2014  ~ Powered By <a href="http://hugo.spf13.com">Hugo</a>
+                </p>
+            </div>
+            </footer>
+        </div>
+    </div>
+
+    
+    
+    <script src="/js/jquery-min-2.1.1.js"></script>
+    <script src="/js/bootstrap.min-3.1.1.js"></script>
+    </body>
+</html>

@@ -1,65 +1,60 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>http://ian.blenke.com/blog/2015/06/28/aws-docker-walkthrough-with-elasticbeanstalk-part-2/</loc>
-    <lastmod>2015-06-28T00:57:08-04:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2015/06/27/aws-docker-walkthrough-with-elasticbeanstalk-part-1/</loc>
-    <lastmod>2015-06-27T13:14:08-04:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2015/03/10/deploying-amazon-ecs-on-coreos/</loc>
-    <lastmod>2015-03-10T16:38:33-04:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2014/11/10/docker-rspec-tdd/</loc>
-    <lastmod>2014-11-10T14:38:37-05:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2014/11/09/openstack-on-a-chromebox/</loc>
-    <lastmod>2014-11-09T19:02:40-05:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2014/11/07/fig-docker/</loc>
-    <lastmod>2014-11-07T19:20:06-05:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2014/11/05/self-standing-ceph-slash-deis-store-docker-containers/</loc>
-    <lastmod>2014-11-05T14:40:59-05:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2014/11/04/using-boot2docker/</loc>
-    <lastmod>2014-11-04T23:13:25-05:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2014/11/04/installing-boot2docker/</loc>
-    <lastmod>2014-11-04T22:41:53-05:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/2014/10/18/immutable-infrastructure-persistence/</loc>
-    <lastmod>2014-10-18T12:55:14-04:00</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>http://ian.blenke.com/blog/archives/</loc>
-    <lastmod>2015-07-07T11:56:53-04:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
   <url>
     <loc>http://ian.blenke.com/</loc>
-    <lastmod>2015-07-07T11:56:53-04:00</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
+    <lastmod>2015-06-28T00:57:08-04:00</lastmod>
+    <priority>0</priority>
   </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2015-06-28-aws-docker-walkthrough-with-elasticbeanstalk-part-2/</loc>
+    <lastmod>2015-06-28T00:57:08-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/</loc>
+    <lastmod>2015-06-27T13:14:08-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2015-03-10-deploying-amazon-ecs-on-coreos/</loc>
+    <lastmod>2015-03-10T16:38:33-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2014-11-10-docker-rspec-tdd/</loc>
+    <lastmod>2014-11-10T14:38:37-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2014-11-09-openstack-on-a-chromebox/</loc>
+    <lastmod>2014-11-09T19:02:40-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2014-11-07-fig-docker/</loc>
+    <lastmod>2014-11-07T19:20:06-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2014-11-05-self-standing-ceph-slash-deis-store-docker-containers/</loc>
+    <lastmod>2014-11-05T14:40:59-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2014-11-04-using-boot2docker/</loc>
+    <lastmod>2014-11-04T23:13:25-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/post/2014-11-04-installing-boot2docker/</loc>
+    <lastmod>2014-11-04T22:41:53-05:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>http://ian.blenke.com/immutable-infrastructure-persistence/</loc>
+    <lastmod>2014-10-18T11:55:14-05:00</lastmod>
+  </url>
+  
 </urlset>

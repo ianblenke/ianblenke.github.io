@@ -1,0 +1,1797 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on Ian Blenke</title>
+    <link>http://ian.blenke.com/post/</link>
+    <description>Recent content in Posts on Ian Blenke</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <lastBuildDate>Sun, 28 Jun 2015 00:57:08 -0400</lastBuildDate>
+    <atom:link href="http://ian.blenke.com/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>AWS Docker Walkthrough with ElasticBeanstalk: Part 2</title>
+      <link>http://ian.blenke.com/post/2015-06-28-aws-docker-walkthrough-with-elasticbeanstalk-part-2/</link>
+      <pubDate>Sun, 28 Jun 2015 00:57:08 -0400</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2015-06-28-aws-docker-walkthrough-with-elasticbeanstalk-part-2/</guid>
+      <description>
+
+&lt;p&gt;While deploying docker containers for immutable infrastructure on AWS ElasticBeanstalk,
+I&amp;rsquo;ve learned a number of useful tricks that go beyond the official Amazon documentation.&lt;/p&gt;
+
+&lt;p&gt;This series of posts are an attempt to summarize some of the useful bits that may benefit
+others facing the same challenges.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;Previously: &lt;a href=&#34;http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/&#34;&gt;Part 1 : Preparing a VPC for your ElasticBeanstalk environments&lt;/a&gt;&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&#34;part-2-creating-your-elasticbeanstalk-environment:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Part 2 : Creating your ElasticBeanstalk environment&lt;/h1&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;step-1-create-your-application-in-aws:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 1: Create your Application in AWS&lt;/h3&gt;
+
+&lt;p&gt;Each AWS account needs to have your ElasticBeanstalk application defined initially.&lt;/p&gt;
+
+&lt;p&gt;Operationally, there are few reasons to remove an application from an AWS account, so there&amp;rsquo;s a good bet it&amp;rsquo;s already there.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws elasticbeanstalk create-application \
+  --profile aws-dev \
+  --region us-east-1 \
+  --application-name myapp \
+  --description &#39;My Application&#39;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You should really only ever have to do this once per AWS account.&lt;/p&gt;
+
+&lt;p&gt;There is an example of this in the Makefile as the &lt;code&gt;make application&lt;/code&gt; target.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-2-update-your-aws-development-environment:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 2 : Update your AWS development environment.&lt;/h3&gt;
+
+&lt;p&gt;During our initial VPC creation, we used the &lt;code&gt;aws&lt;/code&gt; command from the &lt;code&gt;awscli&lt;/code&gt; python package.&lt;/p&gt;
+
+&lt;p&gt;When deploying ElasticBeanstalk applications, we use the &lt;code&gt;eb&lt;/code&gt; command from the &lt;code&gt;awsebcli&lt;/code&gt; python package.&lt;/p&gt;
+
+&lt;p&gt;On OS/X, we run:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;brew install awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;On Windows, chocolatey doesn&amp;rsquo;t have awsebcli, but we can install python pip:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;choco install pip
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Again, because &lt;code&gt;awsebcli&lt;/code&gt; is a python tool, we can install with:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pip install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You may (or may not) need to prefix that pip install with &lt;code&gt;sudo&lt;/code&gt; on linux/unix flavors, depending. ie:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo pip install awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These tools will detect if they are out of date when you run them. You may eventually get a message like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Alert: An update to this CLI is available.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When this happens, you will likely want to either upgrade via homebrew:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;brew update &amp;amp; brew upgrade awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;or, more likely, upgrade using pip directly:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pip install --upgrade awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Again, you may (or may not) need to prefix that pip install with &lt;code&gt;sudo&lt;/code&gt;, depending. ie:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo pip install --upgrade awsebcli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There really should be an awsebcli Docker image, but there presently is not. Add that to the list of images to build.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-3-create-a-ssh-key-pair-to-use:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 3: Create a ssh key pair to use&lt;/h3&gt;
+
+&lt;p&gt;Typically you will want to generate an ssh key locally and upload the public part:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ssh-keygen -t rsa -b 2048 -f ~/.ssh/myapp-dev -P &#39;&#39;
+aws ec2 import-key-pair --key-name myapp-dev --public-key-material &amp;quot;$(cat ~/.ssh/myapp-dev.pub)&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, if you are on a development platform without ssh-keygen for some reason, you can have AWS generate it for you:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws ec2 create-key-pair --key-name myapp-dev &amp;gt; ~/.ssh/myapp-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The downside to the second method is that AWS has the private key (as they generated it, and you shipped it via https over the network to your local machine), whereas in the first example they do not.&lt;/p&gt;
+
+&lt;p&gt;This ssh key can be used to access AWS instances directly.&lt;/p&gt;
+
+&lt;p&gt;After creating this ssh key, it is probably a good idea that you add it to your team&amp;rsquo;s password management tool (Keepass, Hashicorp Vault, Trousseau, Ansible Vault, Chef Encrypted Databags, LastPass, 1Password, Dashlane, etc) so that the private key isn&amp;rsquo;t only on your development workstation in your local user account.&lt;/p&gt;
+
+&lt;p&gt;Note the naming convention of &lt;code&gt;~/.ssh/$(PROJECT)-$(ENVIRONMENT)&lt;/code&gt; - this is the default key filename that &lt;code&gt;eb ssh&lt;/code&gt; will use.&lt;/p&gt;
+
+&lt;p&gt;If you do not use the above naming convention, you will have to add the generated ssh private key to your ssh-agent&amp;rsquo;s keychain in order to use it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;[ -n $SSH_AUTH_SOCK ] || eval $(ssh-agent)
+ssh-add ~/.ssh/myapp-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To list the ssh keys in your keychain, use:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ssh-add -l
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So long as you see 4 or fewer keys, including they key you created above, you should be ok.&lt;/p&gt;
+
+&lt;p&gt;If you have more than 4 keys listed in your ssh-agent keychain, depending on the order they are tried by your ssh client, that may exceed the default number of ssh key retries allowed on the remote sshd server side, which will prevent you from connecting.&lt;/p&gt;
+
+&lt;p&gt;Now we should have an ssh key pair defined in AWS that we can use when spinning up instances.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-4-initialize-your-local-development-directory-for-the-eb-cli:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 4: Initialize your local development directory for the eb cli&lt;/h3&gt;
+
+&lt;p&gt;Before using the &lt;code&gt;eb&lt;/code&gt; command, you must &lt;code&gt;eb init&lt;/code&gt; your project to create a &lt;code&gt;.elasticbeanstalk/config.yml&lt;/code&gt; file:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;eb init --profile aws-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;--profile aws-dev&lt;/code&gt; is optional, if you created profiles in your &lt;code&gt;~/.aws/config&lt;/code&gt; file. If you are using AWS environment variables your your ACCESS/SECRET keys, or only one default AWS account, you may omit that.&lt;/p&gt;
+
+&lt;p&gt;The application must exist in AWS first, which is why this is run &lt;em&gt;after&lt;/em&gt; the previous step of creating the Application in AWS.&lt;/p&gt;
+
+&lt;p&gt;You may be prompted for some critical bits:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ eb init --profile aws-dev
+eb init --profile aws-dev
+
+Select a default region
+1) us-east-1 : US East (N. Virginia)
+2) us-west-1 : US West (N. California)
+3) us-west-2 : US West (Oregon)
+4) eu-west-1 : EU (Ireland)
+5) eu-central-1 : EU (Frankfurt)
+6) ap-southeast-1 : Asia Pacific (Singapore)
+7) ap-southeast-2 : Asia Pacific (Sydney)
+8) ap-northeast-1 : Asia Pacific (Tokyo)
+9) sa-east-1 : South America (Sao Paulo)
+(default is 3): 1
+
+Select an application to use
+1) myapp
+2) [ Create new Application ]
+(default is 2): 1
+
+Select a platform.
+1) PHP
+2) Node.js
+3) IIS
+4) Tomcat
+5) Python
+6) Ruby
+7) Docker
+8) Multi-container Docker
+9) GlassFish
+10) Go
+(default is 1): 7
+
+Select a platform version.
+1) Docker 1.6.2
+2) Docker 1.6.0
+3) Docker 1.5.0
+(default is 1): 1
+Do you want to set up SSH for your instances?
+(y/n): y
+
+Select a keypair.
+1) myapp-dev
+2) [ Create new KeyPair ]
+(default is 2): 1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, to avoid the questions, you can specify the full arguments:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;eb init myapp --profile aws-dev --region us-east-1 -p &#39;Docker 1.6.2&#39; -k myapp-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The end result is a &lt;code&gt;.elasticbeanstalk/config.yml&lt;/code&gt; that will look something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-yaml&#34;&gt;branch-defaults:
+  master:
+    environment: null
+global:
+  application_name: myapp
+  default_ec2_keyname: myapp-dev
+  default_platform: Docker 1.6.2
+  default_region: us-east-1
+  profile: aws-dev
+  sc: git
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Any field appearing as &lt;code&gt;null&lt;/code&gt; will likely need some manual attention from you after the next step.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-5-create-the-elasticbeanstalk-environment:eb835d01b146f8b83f7da2069eddef33&#34;&gt;Step 5: Create the ElasticBeanstalk Environment&lt;/h3&gt;
+
+&lt;p&gt;Previously, in &lt;a href=&#34;http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/&#34;&gt;Part 1 : Preparing a VPC for your ElasticBeanstalk environments&lt;/a&gt;, we generated a VPC using a CloudFormation with an output of the Subnets and Security Group. We will need those things below.&lt;/p&gt;
+
+&lt;p&gt;Here is a repeat of that earlier snippet:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;aws cloudformation describe-stacks --stack-name myapp-dev --profile aws-dev --region us-east-1 | jq -r &#39;.Stacks[].Outputs&#39;
+[
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Id&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VpcId&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;vpc-b7d1d8d2&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCDefaultNetworkAcl&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;acl-b3cfc7d6&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Default Security Group that we blissfully ignore thanks to self-referencing bugs&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCDefaultSecurityGroup&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;sg-3e50a559&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Security Group created by this stack&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSecurityGroup&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;sg-0c50a56b&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet0&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet0&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-995236b2&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet1&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet1&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-6aa4fd1d&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet2&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet2&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-ad3644f4&amp;quot;
+  },
+    {
+    &amp;quot;Description&amp;quot;: &amp;quot;The IAM instance profile for EC2 instances&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;InstanceProfile&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;myapp-dev-InstanceProfile-1KCQJP9M5TSVZ&amp;quot;
+  }
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There are two ways to create a new ElasticBeanstalk environment:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Using &lt;code&gt;eb create&lt;/code&gt; with full arguments for the various details of the environment.&lt;/li&gt;
+&lt;li&gt;Using &lt;code&gt;eb create&lt;/code&gt; with a &lt;code&gt;--cfg&lt;/code&gt; argument of a previous &lt;code&gt;eb config save&lt;/code&gt; to a YAML file in &lt;code&gt;.elasticbeanstalk/saved_configs&lt;/code&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The first way looks something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eb create myapp-dev --verbose \
+  --profile aws-dev \
+  --tier WebServer \
+  --cname myapp-dev \
+  -p &#39;64bit Amazon Linux 2015.03 v1.4.3 running Docker 1.6.2&#39; \
+  -k myapp-dev \
+  -ip myapp-dev-InstanceProfile-1KCQJP9M5TSVZ \
+  --tags Project=myapp,Environment=dev \
+  --envvars DEBUG=info \
+  --vpc.ec2subnets=subnet-995236b2,subnet-6aa4fd1d,subnet-ad3644f4 \
+  --vpc.elbsubnets=subnet-995236b2,subnet-6aa4fd1d,subnet-ad3644f4 \
+  --vpc.publicip --vpc.elbpublic --vpc.securitygroups=sg-0c50a56b
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;Makefile&lt;/code&gt; has an &lt;code&gt;environment&lt;/code&gt; target that removes the need to fill in the fields manually:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;outputs:
+    @which jq &amp;gt; /dev/null 2&amp;gt;&amp;amp;1 || ( which brew &amp;amp;&amp;amp; brew install jq || which apt-get &amp;amp;&amp;amp; apt-get install jq || which yum &amp;amp;&amp;amp; yum install jq || which choco &amp;amp;&amp;amp; choco install jq)
+    @aws cloudformation describe-stacks --stack-name myapp-dev --profile aws-dev --region us-east-1 | jq -r &#39;.Stacks[].Outputs | map({key: .OutputKey, value: .OutputValue}) | from_entries&#39;
+
+environment:
+    eb create $(STACK) --verbose \
+      --profile aws-dev \
+      --tier WebServer \
+      --cname $(shell whoami)-$(STACK) \
+      -p &#39;64bit Amazon Linux 2015.03 v1.4.3 running Docker 1.6.2&#39; \
+      -k $(STACK) \
+      -ip $(shell make outputs | jq -r .InstanceProfile) \
+      --tags Project=$(PROJECT),Environment=$(ENVIRONMENT) \
+      --envvars DEBUG=info \
+      --vpc.ec2subnets=$(shell make outputs | jq -r &#39;[ .VPCSubnet0, .VPCSubnet1, .VPCSubnet2 ] | @csv&#39;) \
+      --vpc.elbsubnets=$(shell make outputs | jq -r &#39;[ .VPCSubnet0, .VPCSubnet1, .VPCSubnet2 ] | @csv&#39;) \
+      --vpc.publicip --vpc.elbpublic \
+      --vpc.securitygroups=$(shell make outputs | jq -r .VPCSecurityGroup)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;On the other hand, after a quick config save:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;eb config save myapp-dev --profile aws-dev --region us-east-1 --cfg myapp-dev-sc
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;We now have the above settings in a YAML file &lt;code&gt;.elasticbeanstalk/saved_configs/myapp-dev-sc.cfg.yml&lt;/code&gt; which can be committed to our git project.&lt;/p&gt;
+
+&lt;p&gt;This leads to the second way to create an ElasticBeanstalk environment:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;eb create myapp-dev --cname myapp-dev --cfg myapp-dev-sc --profile aws-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The flip side of that is the YAML save config has static values embedded in it for a specific deployed VPC.&lt;/p&gt;
+
+&lt;p&gt;More docker goodness to come in Part 3&amp;hellip;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>AWS Docker Walkthrough with ElasticBeanstalk: Part 1</title>
+      <link>http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/</link>
+      <pubDate>Sat, 27 Jun 2015 13:14:08 -0400</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2015-06-27-aws-docker-walkthrough-with-elasticbeanstalk-part-1/</guid>
+      <description>
+
+&lt;p&gt;While deploying docker containers for immutable infrastructure on AWS ElasticBeanstalk,
+I&amp;rsquo;ve learned a number of useful tricks that go beyond the official Amazon documentation.&lt;/p&gt;
+
+&lt;p&gt;This series of posts are an attempt to summarize some of the useful bits that may benefit
+others facing the same challenges.&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;h1 id=&#34;part-1-preparing-a-vpc-for-your-elasticbeanstalk-environments:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;Part 1 : Preparing a VPC for your ElasticBeanstalk environments&lt;/h1&gt;
+
+&lt;hr /&gt;
+
+&lt;h3 id=&#34;step-1-prepare-your-aws-development-environment:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;Step 1 : Prepare your AWS development environment.&lt;/h3&gt;
+
+&lt;p&gt;On OS/X, I install &lt;a href=&#34;http://brew.sh&#34;&gt;homebrew&lt;/a&gt;, and then:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;brew install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;On Windows, I install &lt;a href=&#34;https://chocolatey.org/&#34;&gt;chocolatey&lt;/a&gt; and then:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;choco install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Because &lt;code&gt;awscli&lt;/code&gt; is a python tool, on either of these, or on the various Linux distribution flavors, we can also avoid native package management and alternatively use python &lt;code&gt;easyinstall&lt;/code&gt; or &lt;code&gt;pip&lt;/code&gt; directly:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pip install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You may (or may not) need to prefix that pip install with &lt;code&gt;sudo&lt;/code&gt;, depending. ie:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo pip install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These tools will detect if they are out of date when you run them. You may eventually get a message like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Alert: An update to this CLI is available.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When this happens, you will likely want to either upgrade via homebrew:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;brew update &amp;amp; brew upgrade awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;or, more likely, upgrade using pip directly:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;pip install --upgrade awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Again, you may (or may not) need to prefix that pip install with &lt;code&gt;sudo&lt;/code&gt;, depending. ie:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;sudo pip install --upgrade awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;For the hardcore Docker fans out there, this is pretty trivial to run as a container as well. See &lt;a href=&#34;https://github.com/CenturyLinkLabs/docker-aws-cli&#34;&gt;CenturyLinkLabs/docker-aws-cli&lt;/a&gt; for a good example of that. Managing an aws config file requires volume mapping, or passing &lt;code&gt;-e AWS_ACCESS_KEY_ID={redacted} -e AWS_SECRET_ACCESS_KEY={redacted}&lt;/code&gt;. There are various guides to doing this out there. This will not be one of them ;)&lt;/p&gt;
+
+&lt;h3 id=&#34;step-2-prepare-your-aws-environment-variables:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;Step 2: Prepare your AWS environment variables&lt;/h3&gt;
+
+&lt;p&gt;If you haven&amp;rsquo;t already, &lt;a href=&#34;http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#config-settings-and-precedence&#34;&gt;prepare for AWS cli access&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;You can now configure your &lt;code&gt;~/.aws/config&lt;/code&gt; by running:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;aws configure
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will create a default configuration.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;ve yet to work with any company with only one AWS account though. You will likely find that you need to support managing multiple AWS configuration profiles.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s an example &lt;code&gt;~/.aws/config&lt;/code&gt; file with multiple profiles:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[default]
+output = json
+region = us-east-1
+
+[profile aws-dev]
+AWS_ACCESS_KEY_ID={REDACTED}
+AWS_SECRET_ACCESS_KEY={REDACTED}
+
+[profile aws-prod]
+AWS_ACCESS_KEY_ID={REDACTED}
+AWS_SECRET_ACCESS_KEY={REDACTED}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can create this by running:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ aws configure --profile aws-dev
+AWS Access Key ID [REDACTED]: YOURACCESSKEY
+AWS Secret Access Key [REDACTED]: YOURSECRETKEY
+Default region name [None]: us-east-1
+Default output format [None]: json
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Getting in the habit of specifying &lt;code&gt;--profile aws-dev&lt;/code&gt; is a bit of a reassurance that you&amp;rsquo;re provisioning resources into the correct AWS account, and not sullying AWS cloud resources between VPC environments.&lt;/p&gt;
+
+&lt;h3 id=&#34;step-3-preparing-a-vpc:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;Step 3: Preparing a VPC&lt;/h3&gt;
+
+&lt;p&gt;Deploying anything to AWS EC2 Classic instances these days is to continue down the path of legacy maintenance.&lt;/p&gt;
+
+&lt;p&gt;For new ElasticBeanstalk deployments, a VPC should be used.&lt;/p&gt;
+
+&lt;p&gt;The easiest/best way to deploy a VPC is to use a &lt;a href=&#34;http://aws.amazon.com/cloudformation/aws-cloudformation-templates/&#34;&gt;CloudFormation template&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Below is a VPC CloudFormation that I use for deployment:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;AWSTemplateFormatVersion&amp;quot;: &amp;quot;2010-09-09&amp;quot;,
+  &amp;quot;Description&amp;quot;: &amp;quot;MyApp VPC&amp;quot;,
+  &amp;quot;Parameters&amp;quot; : {
+    &amp;quot;Project&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;Project name to tag resources with&amp;quot;,
+      &amp;quot;Type&amp;quot; : &amp;quot;String&amp;quot;,
+      &amp;quot;MinLength&amp;quot;: &amp;quot;1&amp;quot;,
+      &amp;quot;MaxLength&amp;quot;: &amp;quot;16&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;[a-z]*&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;any alphabetic string (1-16) characters in length&amp;quot;
+    },
+    &amp;quot;Environment&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;Environment name to tag resources with&amp;quot;,
+      &amp;quot;Type&amp;quot; : &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedValues&amp;quot; : [ &amp;quot;dev&amp;quot;, &amp;quot;qa&amp;quot;, &amp;quot;prod&amp;quot; ],
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be one of dev, qa, or prod&amp;quot;
+    },
+    &amp;quot;SSHFrom&amp;quot;: {
+      &amp;quot;Description&amp;quot; : &amp;quot;Lockdown SSH access (default: can be accessed from anywhere)&amp;quot;,
+      &amp;quot;Type&amp;quot; : &amp;quot;String&amp;quot;,
+      &amp;quot;MinLength&amp;quot;: &amp;quot;9&amp;quot;,
+      &amp;quot;MaxLength&amp;quot;: &amp;quot;18&amp;quot;,
+      &amp;quot;Default&amp;quot; : &amp;quot;0.0.0.0/0&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be a valid CIDR range of the form x.x.x.x/x.&amp;quot;
+    },
+    &amp;quot;VPCNetworkCIDR&amp;quot; : {
+      &amp;quot;Description&amp;quot;: &amp;quot;The CIDR block for the entire VPC network&amp;quot;,
+      &amp;quot;Type&amp;quot;: &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;Default&amp;quot;: &amp;quot;10.114.0.0/16&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be an IPv4 dotted quad plus slash plus network bit length in CIDR format&amp;quot;
+    },
+    &amp;quot;VPCSubnet0CIDR&amp;quot; : {
+      &amp;quot;Description&amp;quot;: &amp;quot;The CIDR block for VPC subnet0 segment&amp;quot;,
+      &amp;quot;Type&amp;quot;: &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;Default&amp;quot;: &amp;quot;10.114.0.0/24&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be an IPv4 dotted quad plus slash plus network bit length in CIDR format&amp;quot;
+    },
+    &amp;quot;VPCSubnet1CIDR&amp;quot; : {
+      &amp;quot;Description&amp;quot;: &amp;quot;The CIDR block for VPC subnet1 segment&amp;quot;,
+      &amp;quot;Type&amp;quot;: &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;Default&amp;quot;: &amp;quot;10.114.1.0/24&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be an IPv4 dotted quad plus slash plus network bit length in CIDR format&amp;quot;
+    },
+    &amp;quot;VPCSubnet2CIDR&amp;quot; : {
+      &amp;quot;Description&amp;quot;: &amp;quot;The CIDR block for VPC subnet2 segment&amp;quot;,
+      &amp;quot;Type&amp;quot;: &amp;quot;String&amp;quot;,
+      &amp;quot;AllowedPattern&amp;quot; : &amp;quot;(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})&amp;quot;,
+      &amp;quot;Default&amp;quot;: &amp;quot;10.114.2.0/24&amp;quot;,
+      &amp;quot;ConstraintDescription&amp;quot; : &amp;quot;must be an IPv4 dotted quad plus slash plus network bit length in CIDR format&amp;quot;
+    }
+  },
+  &amp;quot;Resources&amp;quot; : {
+    &amp;quot;VPC&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::VPC&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;EnableDnsSupport&amp;quot; : &amp;quot;true&amp;quot;,
+        &amp;quot;EnableDnsHostnames&amp;quot; : &amp;quot;true&amp;quot;,
+        &amp;quot;CidrBlock&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;VPCNetworkCIDR&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;vpc&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot; : &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;VPCSubnet0&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::Subnet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;AvailabilityZone&amp;quot;: { &amp;quot;Fn::Select&amp;quot; : [ 0, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] },
+        &amp;quot;CidrBlock&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet0CIDR&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;subnet&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;AZ&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Select&amp;quot; : [ 0, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;VPCSubnet1&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::Subnet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;AvailabilityZone&amp;quot;: { &amp;quot;Fn::Select&amp;quot; : [ 1, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] },
+        &amp;quot;CidrBlock&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet1CIDR&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;subnet&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;AZ&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Select&amp;quot; : [ 1, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;VPCSubnet2&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::Subnet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;AvailabilityZone&amp;quot;: { &amp;quot;Fn::Select&amp;quot; : [ 2, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] },
+        &amp;quot;CidrBlock&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet2CIDR&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;subnet&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;AZ&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Select&amp;quot; : [ 2, { &amp;quot;Fn::GetAZs&amp;quot; : &amp;quot;&amp;quot; } ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;InternetGateway&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::InternetGateway&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;igw&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;GatewayToInternet&amp;quot; : {
+       &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::VPCGatewayAttachment&amp;quot;,
+       &amp;quot;Properties&amp;quot; : {
+         &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+         &amp;quot;InternetGatewayId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;InternetGateway&amp;quot; }
+       }
+    },
+    &amp;quot;PublicRouteTable&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::RouteTable&amp;quot;,
+      &amp;quot;DependsOn&amp;quot; : &amp;quot;GatewayToInternet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;route&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot; : &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;PublicRoute&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::Route&amp;quot;,
+      &amp;quot;DependsOn&amp;quot; : &amp;quot;GatewayToInternet&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;RouteTableId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;PublicRouteTable&amp;quot; },
+        &amp;quot;DestinationCidrBlock&amp;quot; : &amp;quot;0.0.0.0/0&amp;quot;,
+        &amp;quot;GatewayId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;InternetGateway&amp;quot; }
+      }
+    },
+    &amp;quot;VPCSubnet0RouteTableAssociation&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::SubnetRouteTableAssociation&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;SubnetId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPCSubnet0&amp;quot; },
+        &amp;quot;RouteTableId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;PublicRouteTable&amp;quot; }
+      }
+    },
+    &amp;quot;VPCSubnet1RouteTableAssociation&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::SubnetRouteTableAssociation&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;SubnetId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPCSubnet1&amp;quot; },
+        &amp;quot;RouteTableId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;PublicRouteTable&amp;quot; }
+      }
+    },
+    &amp;quot;VPCSubnet2RouteTableAssociation&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::SubnetRouteTableAssociation&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;SubnetId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPCSubnet2&amp;quot; },
+        &amp;quot;RouteTableId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;PublicRouteTable&amp;quot; }
+      }
+    },
+    &amp;quot;InstanceRole&amp;quot;: {
+      &amp;quot;Type&amp;quot;: &amp;quot;AWS::IAM::Role&amp;quot;,
+      &amp;quot;Properties&amp;quot;: {
+        &amp;quot;AssumeRolePolicyDocument&amp;quot;: {
+          &amp;quot;Version&amp;quot;: &amp;quot;2012-10-17&amp;quot;,
+          &amp;quot;Statement&amp;quot;: [
+            {
+              &amp;quot;Effect&amp;quot;: &amp;quot;Allow&amp;quot;,
+              &amp;quot;Principal&amp;quot;: {
+                &amp;quot;Service&amp;quot;: [ &amp;quot;ec2.amazonaws.com&amp;quot; ]
+              },
+              &amp;quot;Action&amp;quot;: [ &amp;quot;sts:AssumeRole&amp;quot; ]
+            }
+          ]
+        },
+        &amp;quot;Path&amp;quot;: &amp;quot;/&amp;quot;,
+        &amp;quot;Policies&amp;quot;: [
+          {
+            &amp;quot;PolicyName&amp;quot;: &amp;quot;ApplicationPolicy&amp;quot;,
+            &amp;quot;PolicyDocument&amp;quot;: {
+              &amp;quot;Version&amp;quot;: &amp;quot;2012-10-17&amp;quot;,
+              &amp;quot;Statement&amp;quot;: [
+                {
+                  &amp;quot;Effect&amp;quot;: &amp;quot;Allow&amp;quot;,
+                  &amp;quot;Action&amp;quot;: [
+                    &amp;quot;elasticbeanstalk:*&amp;quot;,
+                    &amp;quot;elastiCache:*&amp;quot;,
+                    &amp;quot;ec2:*&amp;quot;,
+                    &amp;quot;elasticloadbalancing:*&amp;quot;,
+                    &amp;quot;autoscaling:*&amp;quot;,
+                    &amp;quot;cloudwatch:*&amp;quot;,
+                    &amp;quot;dynamodb:*&amp;quot;,
+                    &amp;quot;s3:*&amp;quot;,
+                    &amp;quot;sns:*&amp;quot;,
+                    &amp;quot;sqs:*&amp;quot;,
+                    &amp;quot;cloudformation:*&amp;quot;,
+                    &amp;quot;rds:*&amp;quot;,
+                    &amp;quot;iam:AddRoleToInstanceProfile&amp;quot;,
+                    &amp;quot;iam:CreateInstanceProfile&amp;quot;,
+                    &amp;quot;iam:CreateRole&amp;quot;,
+                    &amp;quot;iam:PassRole&amp;quot;,
+                    &amp;quot;iam:ListInstanceProfiles&amp;quot;
+                  ],
+                  &amp;quot;Resource&amp;quot;: &amp;quot;*&amp;quot;
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    &amp;quot;InstanceProfile&amp;quot;: {
+       &amp;quot;Type&amp;quot;: &amp;quot;AWS::IAM::InstanceProfile&amp;quot;,
+       &amp;quot;Properties&amp;quot;: {
+          &amp;quot;Path&amp;quot;: &amp;quot;/&amp;quot;,
+          &amp;quot;Roles&amp;quot;: [ { &amp;quot;Ref&amp;quot;: &amp;quot;InstanceRole&amp;quot; } ]
+       }
+    },
+    &amp;quot;VPCSecurityGroup&amp;quot; : {
+      &amp;quot;Type&amp;quot; : &amp;quot;AWS::EC2::SecurityGroup&amp;quot;,
+      &amp;quot;Properties&amp;quot; : {
+        &amp;quot;GroupDescription&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;&amp;quot;, [ &amp;quot;VPC Security Group for &amp;quot;, { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } ] ] } ] ] },
+        &amp;quot;SecurityGroupIngress&amp;quot; : [
+          {&amp;quot;IpProtocol&amp;quot;: &amp;quot;tcp&amp;quot;, &amp;quot;FromPort&amp;quot; : &amp;quot;22&amp;quot;,  &amp;quot;ToPort&amp;quot; : &amp;quot;22&amp;quot;,  &amp;quot;CidrIp&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;SSHFrom&amp;quot; }},
+          {&amp;quot;IpProtocol&amp;quot;: &amp;quot;tcp&amp;quot;, &amp;quot;FromPort&amp;quot;: &amp;quot;80&amp;quot;, &amp;quot;ToPort&amp;quot;: &amp;quot;80&amp;quot;, &amp;quot;CidrIp&amp;quot;: &amp;quot;0.0.0.0/0&amp;quot; },
+          {&amp;quot;IpProtocol&amp;quot;: &amp;quot;tcp&amp;quot;, &amp;quot;FromPort&amp;quot;: &amp;quot;443&amp;quot;, &amp;quot;ToPort&amp;quot;: &amp;quot;443&amp;quot;, &amp;quot;CidrIp&amp;quot;: &amp;quot;0.0.0.0/0&amp;quot; }
+        ],
+        &amp;quot;VpcId&amp;quot; : { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; },
+        &amp;quot;Tags&amp;quot; : [
+          { &amp;quot;Key&amp;quot; : &amp;quot;Name&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Fn::Join&amp;quot;: [ &amp;quot;-&amp;quot;, [ &amp;quot;sg&amp;quot;, { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; }, { &amp;quot;Ref&amp;quot; : &amp;quot;Environment&amp;quot; } ] ] } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Project&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Project&amp;quot; } },
+          { &amp;quot;Key&amp;quot; : &amp;quot;Environment&amp;quot;, &amp;quot;Value&amp;quot; : { &amp;quot;Ref&amp;quot;: &amp;quot;Environment&amp;quot; } }
+        ]
+      }
+    },
+    &amp;quot;VPCSGIngress&amp;quot;: {
+      &amp;quot;Type&amp;quot;: &amp;quot;AWS::EC2::SecurityGroupIngress&amp;quot;,
+      &amp;quot;Properties&amp;quot;: {
+        &amp;quot;GroupId&amp;quot;: { &amp;quot;Ref&amp;quot; : &amp;quot;VPCSecurityGroup&amp;quot; },
+        &amp;quot;IpProtocol&amp;quot;: &amp;quot;-1&amp;quot;,
+        &amp;quot;FromPort&amp;quot;: &amp;quot;0&amp;quot;,
+        &amp;quot;ToPort&amp;quot;: &amp;quot;65535&amp;quot;,
+        &amp;quot;SourceSecurityGroupId&amp;quot;: { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSecurityGroup&amp;quot; }
+      }
+    }
+  },
+  &amp;quot;Outputs&amp;quot; : {
+    &amp;quot;VpcId&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;VPC Id&amp;quot;,
+      &amp;quot;Value&amp;quot; :  { &amp;quot;Ref&amp;quot; : &amp;quot;VPC&amp;quot; }
+    },
+    &amp;quot;VPCDefaultNetworkAcl&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;VPC&amp;quot;,
+      &amp;quot;Value&amp;quot; :  { &amp;quot;Fn::GetAtt&amp;quot; : [&amp;quot;VPC&amp;quot;, &amp;quot;DefaultNetworkAcl&amp;quot;] }
+    },
+    &amp;quot;VPCDefaultSecurityGroup&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;VPC Default Security Group that we blissfully ignore thanks to self-referencing bugs&amp;quot;,
+      &amp;quot;Value&amp;quot; :  { &amp;quot;Fn::GetAtt&amp;quot; : [&amp;quot;VPC&amp;quot;, &amp;quot;DefaultSecurityGroup&amp;quot;] }
+    },
+    &amp;quot;VPCSecurityGroup&amp;quot; : {
+      &amp;quot;Description&amp;quot; : &amp;quot;VPC Security Group created by this stack&amp;quot;,
+      &amp;quot;Value&amp;quot; :  { &amp;quot;Ref&amp;quot;: &amp;quot;VPCSecurityGroup&amp;quot; }
+    },
+    &amp;quot;VPCSubnet0&amp;quot;: {
+      &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet0&amp;quot;,
+      &amp;quot;Value&amp;quot;: {
+        &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet0&amp;quot;
+      }
+    },
+    &amp;quot;VPCSubnet1&amp;quot;: {
+      &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet1&amp;quot;,
+      &amp;quot;Value&amp;quot;: {
+        &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet1&amp;quot;
+      }
+    },
+    &amp;quot;VPCSubnet2&amp;quot;: {
+      &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet2&amp;quot;,
+      &amp;quot;Value&amp;quot;: {
+        &amp;quot;Ref&amp;quot;: &amp;quot;VPCSubnet2&amp;quot;
+      }
+    }
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Here is an example CloudFormation parameters file for this template:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;[
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;Project&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;myapp&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;Environment&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;dev&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;VPCNetworkCIDR&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;10.0.0.0/16&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;VPCSubnet0CIDR&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;10.0.0.0/24&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;VPCSubnet1CIDR&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;10.0.1.0/24&amp;quot; },
+  { &amp;quot;ParameterKey&amp;quot;: &amp;quot;VPCSubnet2CIDR&amp;quot;, &amp;quot;ParameterValue&amp;quot;: &amp;quot;10.0.2.0/24&amp;quot; }
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;To script the creation, updating, watching, and deleting of the CloudFormation VPC, I have this Makefile as well:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;STACK:=myapp-dev
+TEMPLATE:=cloudformation-template_vpc-iam.json
+PARAMETERS:=cloudformation-parameters_myapp-dev.json
+AWS_REGION:=us-east-1
+AWS_PROFILE:=aws-dev
+
+all:
+    @which aws || pip install awscli
+    aws cloudformation create-stack --stack-name $(STACK) --template-body file://`pwd`/$(TEMPLATE) --parameters file://`pwd`/$(PARAMETERS) --capabilities CAPABILITY_IAM --profile $(AWS_PROFILE) --region $(AWS_REGION)
+
+update:
+    aws cloudformation update-stack --stack-name $(STACK) --template-body file://`pwd`/$(TEMPLATE) --parameters file://`pwd`/$(PARAMETERS) --capabilities CAPABILITY_IAM --profile $(AWS_PROFILE) --region $(AWS_REGION)
+
+events:
+    aws cloudformation describe-stack-events --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION)
+
+watch:
+    watch --interval 10 &amp;quot;bash -c &#39;make events | head -25&#39;&amp;quot;
+    
+output:
+    @which jq || ( which brew &amp;amp;&amp;amp; brew install jq || which apt-get &amp;amp;&amp;amp; apt-get install jq || which yum &amp;amp;&amp;amp; yum install jq || which choco &amp;amp;&amp;amp; choco install jq)
+    aws cloudformation describe-stacks --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION) | jq -r &#39;.Stacks[].Outputs&#39;
+
+delete:
+    aws cloudformation delete-stack --stack-name $(STACK) --profile $(AWS_PROFILE) --region $(AWS_REGION) 
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can get these same files by cloning my github project, and ssuming you have a profile named &lt;code&gt;aws-dev&lt;/code&gt; as mentioned above, you can even run &lt;code&gt;make&lt;/code&gt; and have it create the &lt;code&gt;myapp-dev&lt;/code&gt; VPC via CloudFormation:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone https://github.com/ianblenke/aws-docker-walkthrough
+cd aws-docker-walkthrough
+make
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can run &lt;code&gt;make watch&lt;/code&gt; to watch the CloudFormation events and wait for a &lt;code&gt;CREATE_COMPLETE&lt;/code&gt; state.&lt;/p&gt;
+
+&lt;p&gt;When this is complete, you can see the CloudFormation outputs by running:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;make output
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The output will look something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;aws cloudformation describe-stacks --stack-name myapp-dev --profile aws-dev --region us-east-1 | jq -r &#39;.Stacks[].Outputs&#39;
+[
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Id&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VpcId&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;vpc-b7d1d8d2&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCDefaultNetworkAcl&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;acl-b3cfc7d6&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Default Security Group that we blissfully ignore thanks to self-referencing bugs&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCDefaultSecurityGroup&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;sg-3e50a559&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;VPC Security Group created by this stack&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSecurityGroup&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;sg-0c50a56b&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet0&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet0&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-995236b2&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet1&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet1&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-6aa4fd1d&amp;quot;
+  },
+  {
+    &amp;quot;Description&amp;quot;: &amp;quot;The subnet id for VPCSubnet2&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;VPCSubnet2&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;subnet-ad3644f4&amp;quot;
+  },
+    {
+    &amp;quot;Description&amp;quot;: &amp;quot;The IAM instance profile for EC2 instances&amp;quot;,
+    &amp;quot;OutputKey&amp;quot;: &amp;quot;InstanceProfile&amp;quot;,
+    &amp;quot;OutputValue&amp;quot;: &amp;quot;myapp-dev-InstanceProfile-1KCQJP9M5TSVZ&amp;quot;
+  }
+]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;These CloudFormation Outputs list parameters that we will need to pass to the ElasticBeanstalk Environment creation during the next part of this walkthrough.&lt;/p&gt;
+
+&lt;h1 id=&#34;one-final-vpc-note-iam-permissions-for-ec2-instance-profiles:bf335f30ee332e0794e1b2dc65d742ea&#34;&gt;One final VPC note: IAM permissions for EC2 instance profiles&lt;/h1&gt;
+
+&lt;p&gt;As a general rule of thumb, each AWS ElasticBanstalk Application Environment should be given its own IAM Instance Profile to use.&lt;/p&gt;
+
+&lt;p&gt;Each AWS EC2 instance should be allowed to assume an IAM role for an IAM instance profile that gives it access to the AWS cloud resources it must interface with.&lt;/p&gt;
+
+&lt;p&gt;This is accomplished by &lt;a href=&#34;http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html&#34;&gt;introspecting on AWS instance metadata&lt;/a&gt;. If you haven&amp;rsquo;t been exposed to this yet, I strongly recommend poking around at &lt;code&gt;http://169.254.169.254&lt;/code&gt; from your EC2 instances:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;curl http://169.254.169.254/latest/meta-data/iam/security-credentials/role-myapp-dev
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The JSON returned from that command allows an AWS library call with no credentials automatically obtain time-limited IAM STS credentials when run on AWS EC2 instances.&lt;/p&gt;
+
+&lt;p&gt;This avoids having to embed &amp;ldquo;permanent&amp;rdquo; IAM access/secret keys as environment variables that may &amp;ldquo;leak&amp;rdquo; over time to parties that shouldn&amp;rsquo;t have access.&lt;/p&gt;
+
+&lt;p&gt;Early on, we tried to do this as an ebextension in &lt;code&gt;.ebextensions/00_iam.config&lt;/code&gt;, but this only works if the admin running the &lt;code&gt;eb create&lt;/code&gt; has IAM permissions for the AWS account, and it appears impossible to change the launch InstanceProfile by defining option settings or overriding cloud resources in an ebextensions config file.&lt;/p&gt;
+
+&lt;p&gt;Instead, the VPC above generates an &lt;code&gt;InstanceProfile&lt;/code&gt; that can be referenced later. More on that later in Part 2.&lt;/p&gt;
+
+&lt;p&gt;Stay tuned&amp;hellip;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Deploying Amazon ECS on CoreOS</title>
+      <link>http://ian.blenke.com/post/2015-03-10-deploying-amazon-ecs-on-coreos/</link>
+      <pubDate>Tue, 10 Mar 2015 16:38:33 -0400</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2015-03-10-deploying-amazon-ecs-on-coreos/</guid>
+      <description>&lt;p&gt;Today, I stumbled on the official &lt;a href=&#34;https://coreos.com/docs/running-coreos/cloud-providers/ecs/&#34;&gt;CoreOS page on ECS&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;ve been putting off ECS for a while, it was time to give it a try.&lt;/p&gt;
+
+&lt;p&gt;To create the ECS cluster, we will need the aws commandline tool:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;which aws || pip install awscli
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Make sure you have your &lt;code&gt;AWS_ACCESS_KEY_ID&lt;/code&gt; and &lt;code&gt;AWS_SECRET_ACCESS_KEY&lt;/code&gt; defined in your shell environment.&lt;/p&gt;
+
+&lt;p&gt;Create the ECS cluster:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;aws ecs create-cluster --cluster-name Cosmos-Dev
+{
+    &amp;quot;cluster&amp;quot;: {
+        &amp;quot;clusterName&amp;quot;: &amp;quot;Cosmos-Dev&amp;quot;,
+        &amp;quot;status&amp;quot;: &amp;quot;ACTIVE&amp;quot;,
+        &amp;quot;clusterArn&amp;quot;: &amp;quot;arn:aws:ecs:us-east-1:123456789012:cluster/My-ECS-Cluster&amp;quot;
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Install the global fleet unit for amazon-ecs-agent.service:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;cat &amp;lt;&amp;lt;EOF &amp;gt; amazon-ecs-agent.service
+[Unit]
+Description=Amazon ECS Agent
+After=docker.service
+Requires=docker.service
+[Service]
+Environment=ECS_CLUSTER=My-ECS-Cluster
+Environment=ECS_LOGLEVEL=warn
+Environment=AWS_REGION=us-east-1
+ExecStartPre=-/usr/bin/docker kill ecs-agent
+ExecStartPre=-/usr/bin/docker rm ecs-agent
+ExecStartPre=/usr/bin/docker pull amazon/amazon-ecs-agent
+ExecStart=/usr/bin/docker run --name ecs-agent \
+    --env=ECS_CLUSTER=${ECS_CLUSTER}\
+    --env=ECS_LOGLEVEL=${ECS_LOGLEVEL} \
+    --publish=127.0.0.1:51678:51678 \
+    --volume=/var/run/docker.sock:/var/run/docker.sock \
+    amazon/amazon-ecs-agent
+ExecStop=/usr/bin/docker stop ecs-agent
+[X-Fleet]
+Global=true
+EOF
+fleetctl start amazon-ecs-agent.service
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This registers a ContainerInstance to the &lt;code&gt;My-ECS-Cluster&lt;/code&gt; in region &lt;code&gt;us-east-1&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Note: this is using the EC2 instance&amp;rsquo;s instance profile IAM credentials. You will want to make sure you&amp;rsquo;ve assigned an instance profile with a Role that has &amp;ldquo;ecs:*&amp;rdquo; access.
+For this, you may want to take a look at the &lt;a href=&#34;https://s3.amazonaws.com/amazon-ecs-cloudformation/Amazon_ECS_Quickstart.template&#34;&gt;Amazon ECS Quickstart CloudFormation template&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Now from a CoreOS host, we can query locally to enumerate the running ContainerInstances in our fleet:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;fleetctl list-machines -fields=ip -no-legend | while read ip ; do \
+    echo $ip $(ssh -n $ip curl -s http://169.254.169.254/latest/meta-data/instance-id) \
+    $(ssh -n $ip curl -s http://localhost:51678/v1/metadata | \
+      docker run -i realguess/jq jq .ContainerInstanceArn) ; \
+  done
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Which returns something like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;10.113.0.23 i-12345678 &amp;quot;arn:aws:ecs:us-east-1:123456789012:container-instance/674140ae-1234-4321-1234-4abf7878caba&amp;quot;
+10.113.1.42 i-23456789 &amp;quot;arn:aws:ecs:us-east-1:123456789012:container-instance/c3506771-1234-4321-1234-1f1b1783c924&amp;quot;
+10.113.2.66 i-34567891 &amp;quot;arn:aws:ecs:us-east-1:123456789012:container-instance/75d30c64-1234-4321-1234-8be8edeec9c6&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And we can query ECS and get the same:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ aws ecs list-container-instances --cluster My-ECS-Cluster | grep arn | cut -d&#39;&amp;quot;&#39; -f2 | \
+  xargs -L1 -I% aws ecs describe-container-instances --cluster My-ECS-Cluster --container-instance % | \
+  jq &#39;.containerInstances[] | .ec2InstanceId + &amp;quot; &amp;quot; + .containerInstanceArn&#39;
+&amp;quot;i-12345678 arn:aws:ecs:us-east-1:123456789012:container-instance/674140ae-1234-4321-1234-4abf7878caba&amp;quot;
+&amp;quot;i-23456789 arn:aws:ecs:us-east-1:123456789012:container-instance/c3506771-1234-4321-1234-1f1b1783c924&amp;quot;
+&amp;quot;i-34567891 arn:aws:ecs:us-east-1:123456789012:container-instance/75d30c64-1234-4321-1234-8be8edeec9c6&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This ECS cluster is ready to use.&lt;/p&gt;
+
+&lt;p&gt;Unfortunately, there is no scheduler here. ECS is a harness for orchestrating docker containers in a cluster as &lt;em&gt;tasks&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;Where these tasks are allocated is left up to the AWS customer.&lt;/p&gt;
+
+&lt;p&gt;What we really need is a &lt;em&gt;scheduler&lt;/em&gt;.&lt;/p&gt;
+
+&lt;p&gt;CoreOS has a form of a scheduler in fleet, but that is for fleet units of systemd services, and is not limited to docker containers as ECS is.
+Fleet&amp;rsquo;s scheduler is also currently a bit weak in that it schedules new units to the fleet machine with the fewest number of units.&lt;/p&gt;
+
+&lt;p&gt;Kubernetes has a random scheduler, which is better in a couple ways, but does not fairly allocate the system resources.&lt;/p&gt;
+
+&lt;p&gt;The &lt;em&gt;best&lt;/em&gt; scheduler at present is Mesos, which takes into account resource sizing estimates and current utilization.&lt;/p&gt;
+
+&lt;p&gt;Normally, Mesos uses Mesos Slaves to run work. Mesos can also use ECS as a backend instead.&lt;/p&gt;
+
+&lt;p&gt;My next steps: Deploy Mesos using the &lt;a href=&#34;https://github.com/awslabs/ecs-mesos-scheduler-driver&#34;&gt;ecs-mesos-scheduler-driver&lt;/a&gt;, as &lt;a href=&#34;http://jpetazzo.github.io/2015/01/14/amazon-docker-ecs-ec2-container-service/&#34;&gt;summarized by jpetazzo&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Docker rspec TDD</title>
+      <link>http://ian.blenke.com/post/2014-11-10-docker-rspec-tdd/</link>
+      <pubDate>Mon, 10 Nov 2014 14:38:37 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-10-docker-rspec-tdd/</guid>
+      <description>&lt;p&gt;A Dockerfile both describes a Docker image as well as layers for the working directory, environment variables, ports, entrypoint commands, and other important interfaces.&lt;/p&gt;
+
+&lt;p&gt;Test-Driven Design should drive a developer toward implementation details, not the other way around.&lt;/p&gt;
+
+&lt;p&gt;A devops without tests is a sad devops indeed.&lt;/p&gt;
+
+&lt;p&gt;Working toward a docker based development environment, my first thoughts were toward &lt;a href=&#34;http://serverspec.org/&#34;&gt;Serverspec&lt;/a&gt; by &lt;a href=&#34;https://github.com/mizzy&#34;&gt;Gosuke Miayshita&lt;/a&gt;, as it is entirely framework agnostic. Gosuke gave an excellent presentation at ChefConf this year re-inforcing that Serverspec is &lt;em&gt;not&lt;/em&gt; a chef centric tool, and works quite well in conjunction with other configuration management tools.&lt;/p&gt;
+
+&lt;p&gt;Researching Serverspec and docker a bit more, &lt;a href=&#34;https://github.com/tcnksm&#34;&gt;Taichi Nakashima&lt;/a&gt; based his &lt;a href=&#34;https://github.com/tcnksm-sample/docker-rspec&#34;&gt;TDD of Dockerfile by RSpec on OS/X&lt;/a&gt; using ssh.&lt;/p&gt;
+
+&lt;p&gt;With Docker 1.3 and later, there is a &amp;ldquo;docker exec&amp;rdquo; interactive docker API for allowing live sessions on processes spawned in the same process namespace as a running container, effectively allowing external access into a running docker container using only the docker API.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://blog.wercker.com/2013/12/23/Test-driven-development-for-docker.html&#34;&gt;PIETER JOOST VAN DE SANDE&lt;/a&gt; posted about using the docker-api to accomplish the goal of testing a Dockerfile. His work is based on the &lt;a href=&#34;https://rubygems.org/gems/docker-api&#34;&gt;docker-api&lt;/a&gt; gem (github &lt;a href=&#34;https://github.com/swipely/docker-api&#34;&gt;swipely/docker-api&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;Looking into the docker-api source, there is no support yet for docker 1.3&amp;rsquo;s exec API interface to run Serverspec tests against the contents of a running docker container.&lt;/p&gt;
+
+&lt;p&gt;Attempting even the most basic docker API calls with docker-api, &lt;a href=&#34;https://github.com/swipely/docker-api/issues/202&#34;&gt;issue 202&lt;/a&gt; made it apparent that TLS support for boot2docker would need to be addressed first.&lt;/p&gt;
+
+&lt;p&gt;Here is my functional &lt;code&gt;spec_helper.rb&lt;/code&gt; with the fixes necessary to use docker-api without modifications:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;require &amp;quot;docker&amp;quot;
+
+docker_host = ENV[&#39;DOCKER_HOST&#39;].dup
+
+if(ENV[&#39;DOCKER_TLS_VERIFY&#39;])
+  cert_path = File.expand_path ENV[&#39;DOCKER_CERT_PATH&#39;]
+  Docker.options = {
+    client_cert: File.join(cert_path, &#39;cert.pem&#39;),
+    client_key: File.join(cert_path, &#39;key.pem&#39;)
+  }
+  Excon.defaults[:ssl_ca_file] = File.join(cert_path, &#39;ca.pem&#39;)
+  docker_host.gsub!(/^tcp/,&#39;https&#39;)
+end
+
+Docker.url = docker_host
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Following this, I can drive the generation of a Dockerfile with a spec:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;require &amp;quot;spec_helper&amp;quot;
+
+describe &amp;quot;dockerfile built my_app image&amp;quot; do
+  before(:all) do
+    @image = Docker::Image.all(:all =&amp;gt; true).find { |image|
+      Docker::Util.parse_repo_tag( image.info[&#39;RepoTags&#39;].first ).first == &#39;my_app&#39;
+    }
+    p @image.json[&amp;quot;Env&amp;quot;]
+  end
+
+  it &amp;quot;should exist&amp;quot; do
+    expect(@image).not_to be_nil
+  end
+
+  it &amp;quot;should have CMD&amp;quot; do
+    expect(@image.json[&amp;quot;Config&amp;quot;][&amp;quot;Cmd&amp;quot;]).to include(&amp;quot;/run.sh&amp;quot;)
+  end
+
+  it &amp;quot;should expose the default port&amp;quot; do
+    expect(@image.json[&amp;quot;Config&amp;quot;][&amp;quot;ExposedPorts&amp;quot;].has_key?(&amp;quot;3000/tcp&amp;quot;)).to be_truthy
+  end
+
+  it &amp;quot;should have environmental variable&amp;quot; do
+    expect(@image.json[&amp;quot;Config&amp;quot;][&amp;quot;Env&amp;quot;]).to include(&amp;quot;HOME=/usr/src/app&amp;quot;)
+  end
+end
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This drives me iteratively to write a Dockerfile that looks like:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;FROM rails:onbuild
+ENV HOME /usr/src/app
+ADD docker/run.sh /run.sh
+RUN chmod 755 /run.sh
+EXPOSE 3000
+CMD /run.sh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next step: extend docker-api to support exec for serverspec based testing of actual docker image contents.&lt;/p&gt;
+
+&lt;p&gt;Sláinte!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>OpenStack on a Chromebox</title>
+      <link>http://ian.blenke.com/post/2014-11-09-openstack-on-a-chromebox/</link>
+      <pubDate>Sun, 09 Nov 2014 19:02:40 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-09-openstack-on-a-chromebox/</guid>
+      <description>
+
+&lt;p&gt;Saturday&amp;rsquo;s project was installing OpenStack on a ChromeBox.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-0-identify-your-hardware-add-ram:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 0: Identify your hardware, add RAM&lt;/h2&gt;
+
+&lt;p&gt;Before you begin, make sure you &lt;a href=&#34;http://www.chromium.org/chromium-os/developer-information-for-chrome-os-devices&#34;&gt;know which ChromeOS device you have&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;In my case, it was a &lt;a href=&#34;http://www.chromium.org/chromium-os/developer-information-for-chrome-os-devices/samsung-sandy-bridge&#34;&gt;Samsung Series 3 Chromebox&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Thankfully, the memory was very easy to upgrade to 16G, as the bottom snaps right off.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/chromebox/stumpy-top-mid.jpg&#34; alt=&#34;Samsung Series 3 Chromebox with bottom exposed&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-1-make-a-chromeos-recovery-usb:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 1: Make a ChromeOS recovery USB&lt;/h2&gt;
+
+&lt;p&gt;Plug in a 4G or larger USB stick, then open this URL on your ChromeOS device:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;chrome://imageburner&#34;&gt;chrome://imageburner&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Follow the instructions.&lt;/p&gt;
+
+&lt;p&gt;We shouldn&amp;rsquo;t need this, but you never know. (And, yes, I did end up needing it during one of my iterations while writing this post).&lt;/p&gt;
+
+&lt;h2 id=&#34;step-2-enable-developer-mode:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 2: Enable developer mode&lt;/h2&gt;
+
+&lt;p&gt;The switch in the image is how I put my ChromeBox &lt;a href=&#34;http://www.chromium.org/chromium-os/poking-around-your-chrome-os-device#TOC-Putting-your-Chrome-OS-Device-into-Developer-Mode&#34;&gt;into development mode&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/chromebox/stumpy-dev-switch.jpg&#34; alt=&#34;Dev Switch on a Samsung Chromebox&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;After flipping the switch, reboot.&lt;/p&gt;
+
+&lt;p&gt;On this first reboot, the existing on-board storage will be wiped entirely, erasing any account credentials and cached content.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-3-login-to-the-console-as-chronos:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 3: Login to the console as &amp;ldquo;chronos&amp;rdquo;&lt;/h2&gt;
+
+&lt;p&gt;Using cntl-alt-F2, enter the username &amp;ldquo;chronos&amp;rdquo; at the login: prompt. Hit return at the password: prompt (the default chronos password is an empty string).&lt;/p&gt;
+
+&lt;p&gt;Note: You did not actually need to login to google via the UI interface.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-4-enable-usb-and-seabios-booting:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 4: Enable USB and SeaBIOS booting&lt;/h2&gt;
+
+&lt;p&gt;Now that you have a shell as chronos, you can enable USB booting.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;sudo crossystem dev_boot_usb=1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After enabling and rebooting, you can now boot from USB drives with &lt;code&gt;cntl-u&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;In order to install Ubuntu (or your distro of choice), we need to legacy boot. This requires a BIOS.&lt;/p&gt;
+
+&lt;p&gt;Newer ChromeBox hardware includes SeaBIOS natively.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;sudo crossystem dev_boot_legacy=1
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After enabling and rebooting, you can now boot to legacy images with &lt;code&gt;cntl-l&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;If you have an older ChromeBox (like the Samsung Series 3) that doesn&amp;rsquo;t have a SeaBIOS boot, you will need to flash one.&lt;/p&gt;
+
+&lt;p&gt;Flashing a new bootstrap requires a jumper or other physical change to hardware to allow the &lt;a href=&#34;http://flashrom.org/Flashrom&#34;&gt;flashrom&lt;/a&gt; tool to write to flash.&lt;/p&gt;
+
+&lt;p&gt;NOTE: &lt;B&gt;ASSUME THAT THIS WILL LIKELY BRICK YOUR CHROMEBOX. YOU HAVE BEEN WARNED&lt;/B&gt;&lt;/p&gt;
+
+&lt;p&gt;On the Samsung Series 3 ChromeBox, the jumper looks like this:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/chromebox/spi-flash-chromebox.jpg&#34; alt=&#34;Samsung Series 3 flash jumper&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;A bit of folded tin-foil made for a quick jumper.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://johnlewis.ie/&#34;&gt;John Lewis&lt;/a&gt; is &lt;a href=&#34;https://johnlewis.ie/custom-chromebook-firmware/rom-download/&#34;&gt;maintaining a marvelous script&lt;/a&gt; that auto-detects and flashes an updated SeaBIOS for most ChromeBook/ChromeBox hardware:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget https://johnlewis.ie/getnflash_johnlewis_rom.sh
+chmod u+x getnflash_johnlewis_rom.sh
+./getnflash_johnlewis_rom.sh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The script makes you type &amp;ldquo;If this bricks my Chromebook/box, on my head be it!&amp;rdquo; to make sure you understand that you are most likely going to brick your chromebox/chromebook by proceeding. This is no joke.&lt;/p&gt;
+
+&lt;p&gt;Being ok with potentially bricking my ChromeBox, I went ahead.&lt;/p&gt;
+
+&lt;p&gt;The script ran to completion without errors, and was thoroughly successful.&lt;/p&gt;
+
+&lt;p&gt;After rebooting, I now get a SeaBIOS splash identification (rather than the eventual sick computer).&lt;/p&gt;
+
+&lt;p&gt;The downside to doing this is that I now &lt;em&gt;must&lt;/em&gt; boot off of an external USB device, as the SeaBIOS doesn&amp;rsquo;t seem to support booting from the built-in MMC SSD anymore.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-5-install-your-linux-distribution:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 5: Install your Linux distribution&lt;/h2&gt;
+
+&lt;p&gt;I went ahead and pulled an Ubuntu Trust 14.04 ISO and DD&amp;rsquo;ed it to a USB stick on my Mac.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget -c http://releases.ubuntu.com/14.04/ubuntu-14.04-desktop-amd64.iso
+diskutil list
+hdiutil unmount /Volumes/USBSTICK
+sudo dd if=ubuntu-14.04-desktop-amd64.iso of=/dev/disk5 bs=1m
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After it finished flashing, I removed the USB stick from my Mac and plugged it into the front of the ChromeBox.&lt;/p&gt;
+
+&lt;p&gt;The USB installation media for Ubuntu was detected by SeaBIOS as the second bootable USB device.&lt;/p&gt;
+
+&lt;p&gt;I also attached 2 external 1TB USB disks to the back as the media that will be installed to.
+These appeared as the third and fourth bootable devices to SeaBIOS.&lt;/p&gt;
+
+&lt;p&gt;With my new SeaBIOS bootstrap, I now must hit &amp;ldquo;Esc&amp;rdquo; and &amp;ldquo;2&amp;rdquo; to boot off of the first USB stick for the Ubuntu installation.&lt;/p&gt;
+
+&lt;p&gt;This presented me with the Ubunu boot menu.&lt;/p&gt;
+
+&lt;p&gt;Beyond this point, I installed Ubuntu to the two external 1TB USB disks, with a primary boot partition (type &amp;ldquo;83&amp;rdquo;) on each for /boot as normal linux ext4, and a primary RAID partition (type &amp;ldquo;fd&amp;rdquo;) on each for the RAID1 mirror upon which I layered LVM with a volume group named &amp;ldquo;vg&amp;rdquo; and a &amp;ldquo;rootfs&amp;rdquo; and a &amp;ldquo;swapfs&amp;rdquo; logical volume. At the end, I installed the grub boot sector to /dev/sdb and /dev/sdc (the two external 1TB USB drives).&lt;/p&gt;
+
+&lt;p&gt;After removing the USB stick for the Ubuntu installation media, the SeaBIOS entries shifted by 1.&lt;/p&gt;
+
+&lt;p&gt;With my new SeaBIOS bootstrap, I now must hit &amp;ldquo;Esc&amp;rdquo; and &amp;ldquo;2&amp;rdquo; to boot off of the first USB 1TB drive, or &amp;ldquo;3&amp;rdquo; for the second USB 1TB drive.&lt;/p&gt;
+
+&lt;p&gt;When I figure out how to get around the SeaBIOS hang on boot if I don&amp;rsquo;t do this, I will update this blog post.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-4-devstack-installation-of-openstack:09dde854d4ad64897d8bff6e3db2b9f8&#34;&gt;Step 4: Devstack installation of OpenStack&lt;/h2&gt;
+
+&lt;p&gt;From this point forward, I followed the &lt;a href=&#34;http://devstack.org&#34;&gt;DevStack&lt;/a&gt; &lt;a href=&#34;http://docs.openstack.org/developer/devstack/guides/single-machine.html&#34;&gt;All-in-one single-machine install guide&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;My local.conf for the all-in-one install is a collection of bits and pieces collected while digging around:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[[local|localrc]]
+
+SERVICE_TOKEN=a682f596-76f3-11e3-b3b2-e716f9080d50
+ADMIN_PASSWORD=nomoresecrets
+MYSQL_PASSWORD=iheartdatabases
+RABBIT_PASSWORD=flopsymopsy
+SERVICE_PASSWORD=$ADMIN_PASSWORD
+#HOST_IP=10.0.0.106
+DEST=/opt/stack
+LOGFILE=$DEST/logs/stack.sh.log
+LOGDAYS=7
+#LOG_COLOR=False
+# Uncomment these to grab the milestone-proposed branches from the repos:
+#CINDER_BRANCH=milestone-proposed
+#GLANCE_BRANCH=milestone-proposed
+#HORIZON_BRANCH=milestone-proposed
+#KEYSTONE_BRANCH=milestone-proposed
+#KEYSTONECLIENT_BRANCH=milestone-proposed
+#NOVA_BRANCH=milestone-proposed
+#NOVACLIENT_BRANCH=milestone-proposed
+#NEUTRON_BRANCH=milestone-proposed
+#SWIFT_BRANCH=milestone-proposed
+SWIFT_HASH=66a3d6b56c1f479c8b4e70ab5c2000f5
+SWIFT_REPLICAS=1
+SWIFT_DATA_DIR=$DEST/data/swift
+FIXED_RANGE=10.1.0.0/24
+FLOATING_RANGE=10.2.0.0/24
+FIXED_NETWORK_SIZE=256
+PUBLIC_INTERFACE=eth0
+NET_MAN=FlatDHCPManager
+FLAT_NETWORK_BRIDGE=br100
+SCREEN_LOGDIR=$DEST/logs/screen
+VOLUME_GROUP=&amp;quot;vg&amp;quot;
+VOLUME_NAME_PREFIX=&amp;quot;cinder-&amp;quot;
+VOLUME_BACKING_FILE_SIZE=10250M
+API_RATE_LIMIT=False
+VIRT_DRIVER=libvirt
+LIBVIRT_TYPE=kvm
+#SCHEDULER=nova.scheduler.filter_scheduler.FilterScheduler
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As the stack user, running &lt;code&gt;./stack.sh&lt;/code&gt; kicked off the install, and it completed successfully.&lt;/p&gt;
+
+&lt;p&gt;At the end, it tells you the URLs to use to access your new OpenStack server:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;Horizon is now available at http://10.0.0.106/
+Keystone is serving at http://10.0.0.106:5000/v2.0/
+Examples on using novaclient command line is in exercise.sh
+The default users are: admin and demo
+The password: nomoresecrets
+This is your host ip: 10.0.0.106
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I also ended up creating this &lt;code&gt;~/.fog&lt;/code&gt; file locally on my Mac, based on &lt;a href=&#34;http://docs.cloudfoundry.org/deploying/openstack/validate_openstack.html&#34;&gt;CloudFoundry&amp;rsquo;s guide to validating your OpenStack&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;:openstack:
+  :openstack_auth_url:  http://10.0.0.106:5000/v2.0/tokens
+  :openstack_api_key:   nomoresecrets
+  :openstack_username:  admin
+  :openstack_tenant:    admin
+  :openstack_region:    RegionOne # Optional
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;With it, I can now use the &lt;a href=&#34;http://fog.io&#34;&gt;fog&lt;/a&gt; command-line tool locally on my development Mac to manipulate the ChromeBox based OpenStack server.&lt;/p&gt;
+
+&lt;p&gt;Cheers!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>fig-docker</title>
+      <link>http://ian.blenke.com/post/2014-11-07-fig-docker/</link>
+      <pubDate>Fri, 07 Nov 2014 19:20:06 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-07-fig-docker/</guid>
+      <description>&lt;p&gt;A common devops problem when developing &lt;a href=&#34;http://docker.io&#34;&gt;Docker&lt;/a&gt; containers is managing the orchestration of multiple containers in a development environment.&lt;/p&gt;
+
+&lt;p&gt;There are a number of orchestration harnesses for Docker available:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Docker&amp;rsquo;s &lt;a href=&#34;http://fig.sh&#34;&gt;Fig&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/dcm-oss/blockade&#34;&gt;blockade&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.vagrantup.com/v2/provisioning/docker.html&#34;&gt;Vagrant&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/GoogleCloudPlatform/kubernetes&#34;&gt;kubernetes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/signalfuse/maestro-ng&#34;&gt;maestro-ng&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/michaelsauter/crane&#34;&gt;crane&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Centurylink&amp;rsquo;s &lt;a href=&#34;http://panamax.io/&#34;&gt;Panamax&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://shipyard-project.com/&#34;&gt;Shipyard&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://decking.io/&#34;&gt;Decking&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;NewRelic&amp;rsquo;s &lt;a href=&#34;https://github.com/newrelic/centurion&#34;&gt;Centurion&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Spotify&amp;rsquo;s &lt;a href=&#34;https://github.com/spotify/helios&#34;&gt;Helios&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/cattleio/stampede&#34;&gt;Stampede&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.getchef.com/solutions/docker/&#34;&gt;Chef&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.ansible.com/docker&#34;&gt;Ansible&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://flynn.io/&#34;&gt;Flynn&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/mailgun/shipper&#34;&gt;Shipper&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://octohost.io&#34;&gt;Octohost&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tsuru.io/&#34;&gt;Tsuru&lt;/a&gt; with &lt;a href=&#34;https://github.com/tsuru/docker-cluster&#34;&gt;docker-cluster&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://clusterhq.com/&#34;&gt;Flocker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/CloudCredo/cloudfocker&#34;&gt;CloudFocker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cloudsoftcorp.com/blog/2014/06/clocker-creating-a-docker-cloud-with-apache-brooklyn/&#34;&gt;Clocker&lt;/a&gt; and &lt;a href=&#34;http://brooklyn.incubator.apache.org&#34;&gt;Apache Brooklyn&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://cloudfoundry.org&#34;&gt;CloudFoundry&lt;/a&gt;&amp;rsquo;s &lt;a href=&#34;https://github.com/cf-platform-eng/docker-boshrelease&#34;&gt;docker-boshrelease&lt;/a&gt;/&lt;a href=&#34;https://github.com/cloudfoundry-incubator/diego-release&#34;&gt;diego&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Mesosphere &lt;a href=&#34;https://github.com/mesosphere/deimos&#34;&gt;Deimos&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://deis.io&#34;&gt;Deis&lt;/a&gt; (a PaaS that can git push deploy containers using &lt;a href=&#34;http://heroku.com&#34;&gt;Heroku&lt;/a&gt; buildpacks &lt;em&gt;or&lt;/em&gt; a Dockerfile)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are a number of hosted service offerings now as well:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://aws.amazon.com/ecs&#34;&gt;Amazon ECS&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.qualisystems.com/cloudshell-6-0-sneak-peek/&#34;&gt;CloudShell&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://elasticbox.com/how-it-works/&#34;&gt;ElasticBox&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Aw, heck, just check the &lt;a href=&#34;http://www.mindmeister.com/389671722/docker-ecosystem&#34;&gt;docker ecosystem mindmap&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are also RAFT/GOSSIP clustering solutions like:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://coreos.com/&#34;&gt;CoreOS&lt;/a&gt;/&lt;a href=&#34;https://github.com/coreos/fleet&#34;&gt;Fleet&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.openshift.com/products/origin&#34;&gt;OpenShift Origin&lt;/a&gt; uses &lt;a href=&#34;http://www.projectatomic.io/&#34;&gt;ProjectAtomic&lt;/a&gt;/&lt;a href=&#34;https://openshift.github.io/geard/&#34;&gt;Geard&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;My &lt;a href=&#34;https://github.com/ianblenke/coreos-vagrant-kitchen-sink&#34;&gt;coreos-vagrant-kitchen-sink&lt;/a&gt; github project submits &lt;a href=&#34;https://github.com/ianblenke/coreos-vagrant-kitchen-sink/tree/master/cloud-init&#34;&gt;cloud-init units&lt;/a&gt; via a YAML file when booting member nodes. It&amp;rsquo;s a good model for production, but it&amp;rsquo;s a bit heavy for development.&lt;/p&gt;
+
+&lt;p&gt;Docker is currently working on &lt;a href=&#34;https://www.youtube.com/watch?v=vtnSL79rZ6o&#34;&gt;Docker Clustering&lt;/a&gt;, but it is presently just a proof-of-concept and is now under a total re-write.&lt;/p&gt;
+
+&lt;p&gt;They are also &lt;a href=&#34;https://www.youtube.com/watch?v=YuSq6bXHnOI&#34;&gt;implementing docker composition&lt;/a&gt; which provides Fig like functionality using upcoming docker &amp;ldquo;groups&amp;rdquo;.&lt;/p&gt;
+
+&lt;p&gt;That influence of Fig makes sense, as &lt;a href=&#34;http://venturebeat.com/2014/07/22/docker-buys-orchard-a-2-man-startup-with-a-cloud-service-for-running-docker-friendly-apps/&#34;&gt;Docker bought Orchard&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Internally, Docker developers use &lt;a href=&#34;http://fig.sh&#34;&gt;Fig&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Docker&amp;rsquo;s website also directs everyone to &lt;a href=&#34;http://boot2docker.io&#34;&gt;Boot2Docker&lt;/a&gt;, as that is the tool Docker developers use as their docker baseline environment.&lt;/p&gt;
+
+&lt;p&gt;Boot2Docker spawns a &lt;a href=&#34;https://www.virtualbox.org/&#34;&gt;VirtualBox&lt;/a&gt; based VM as well as a native docker client runtime on the developer&amp;rsquo;s host machine, and provides the &lt;code&gt;DOCKER_HOST&lt;/code&gt; and related enviroments necessary for the client to talk to the VM.&lt;/p&gt;
+
+&lt;p&gt;This allows a developer&amp;rsquo;s Windows or OS/X machine to have a docker command that behaves as if the docker containers are running natively on their host machine.&lt;/p&gt;
+
+&lt;p&gt;While Fig is easy to install under OS/X as it has native Python support (&amp;ldquo;pip install fig&amp;rdquo;), installing Fig on a Windows developer workstation would normally require Python support be installed separately.&lt;/p&gt;
+
+&lt;p&gt;Rather than do that, I&amp;rsquo;ve built a new &lt;a href=&#34;https://registry.hub.docker.com/u/ianblenke/fig-docker/&#34;&gt;ianblenke/fig-docker&lt;/a&gt; docker Hub image, which is auto-built from &lt;a href=&#34;https://github.com/ianblenke/docker-fig-docker&#34;&gt;ianblenke/docker-fig-docker&lt;/a&gt; on github.&lt;/p&gt;
+
+&lt;p&gt;This allows running fig inside a docker container using:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -v $(pwd):/app \
+           -v $DOCKER_CERT_PATH:/certs \
+           -e DOCKER_CERT_PATH=/certs \
+           -e DOCKER_HOST=$DOCKER_HOST \
+           -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY \
+           -ti --rm ianblenke/fig-docker fig --help
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, a developer can alias it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;alias fig=&amp;quot;docker run -v $(pwd):/app \
+                      -v $DOCKER_CERT_PATH:/certs
+                      -e DOCKER_CERT_PATH=/certs \
+                      -e DOCKER_HOST=$DOCKER_HOST \
+                      -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY \
+                      -ti --rm ianblenke/fig-docker fig&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now the developer can run &lt;code&gt;fig&lt;/code&gt; as if it is running on their development host, continuing the boot2docker illusion.&lt;/p&gt;
+
+&lt;p&gt;In the above examples, the current directory &lt;code&gt;$(pwd)&lt;/code&gt; is being mounted as /app inside the docker container.&lt;/p&gt;
+
+&lt;p&gt;On a boot2docker install, the boot2docker VM is the actual source of that volume path.&lt;/p&gt;
+
+&lt;p&gt;That means you would actually have to have the current path inside the boot2docker VM as well.&lt;/p&gt;
+
+&lt;p&gt;To do that, on a Mac, do this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker down
+VBoxManage sharedfolder add boot2docker-vm -name home -hostpath /Users
+boot2docker up
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;From this point forward, until the next &lt;code&gt;boot2docker init&lt;/code&gt;, your boot2docker VM should have your home directory mounted as /Users and the path should be the same.&lt;/p&gt;
+
+&lt;p&gt;A similar trick happens for Windows hosts, providing the same path inside the boot2docker VM as a developer would use.&lt;/p&gt;
+
+&lt;p&gt;This allows a normalized docker/fig interface for developers to begin their foray into docker orchestration.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s setup a very quick &lt;a href=&#34;http://rubyonrails.org/&#34;&gt;Ruby on Rails&lt;/a&gt; application from scratch, and then add a Dockerfile and fig.yml that spins up a mysql service for it to talk to.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s a quick script that does just that. The only requirement is a functional docker command able to spin up containers.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#!/bin/bash
+set -ex
+
+# Source the boot2docker environment variables
+eval $(boot2docker shellinit 2&amp;gt;/dev/null)
+
+# Use a rails container to create a new rails project in the current directory called figgypudding
+docker run -it --rm -v $(pwd):/app rails:latest bash -c &#39;rails new figgypudding; cp -a /figgypudding /app&#39;
+
+cd figgypudding
+
+# Create the Dockerfile used to build the figgypudding_web:latest image used by the figgypudding_web_1 container
+cat &amp;lt;&amp;lt;EOD &amp;gt; Dockerfile
+FROM rails:onbuild
+ENV HOME /usr/src/app
+EOD
+
+# This is the Fig orchestration configuration
+cat &amp;lt;&amp;lt;EOF &amp;gt; fig.yml
+mysql:
+  environment:
+    MYSQL_ROOT_PASSWORD: supersecret
+    MYSQL_DATABASE: figgydata
+    MYSQL_USER: figgyuser
+    MYSQL_PASSWORD: password
+  ports:
+    - &amp;quot;3306:3306&amp;quot;
+  image: mysql:latest
+figgypudding:
+  environment:
+    RAILS_ENV: development
+    DATABASE_URL: mysql2://figgyuser:password@172.17.42.1:3306/figgydata
+  links:
+    - mysql
+  ports:
+    - &amp;quot;3000:3000&amp;quot;
+  build: .
+  command: bash -xc &#39;bundle exec rake db:migrate &amp;amp;&amp;amp; bundle exec rails server&#39;
+EOF
+
+# Rails defaults to sqlite, convert it to use mysql
+sed -i -e &#39;s/sqlite3/mysql2/&#39; Gemfile
+
+# Update the Gemfile.lock using the rails container we referenced earlier
+docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app rails:latest bundle update
+
+# Use the fig command from my fig-docker container to fire up the Fig formation
+docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs \
+                          -e DOCKER_CERT_PATH=/certs \
+                          -e DOCKER_HOST=$DOCKER_HOST \
+                          -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY \
+                          -ti --rm ianblenke/fig-docker fig up
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After running that, there should now be a web server running on the boot2docker VM, which should generally be &lt;a href=&#34;http://192.168.59.103:3000/&#34;&gt;http://192.168.59.103:3000/&lt;/a&gt; as that seems to be the common boot2docker default IP.&lt;/p&gt;
+
+&lt;p&gt;This is fig, distilled to its essence.&lt;/p&gt;
+
+&lt;p&gt;Beyond this point, a developer can &amp;ldquo;fig build ; fig up&amp;rdquo; and see the latest result of their work. This is something ideally added as a git post-commit hook or a iteration harness like &lt;a href=&#34;https://github.com/guard/guard&#34;&gt;Guard&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;While it may not appear &lt;em&gt;pretty&lt;/em&gt; at first glance, realize that only &lt;code&gt;cat&lt;/code&gt;, and &lt;code&gt;sed&lt;/code&gt; were used on the host here (and very well could also themselves have also been avoided). No additional software was installed on the host, yet a rails app was created and deployed in docker containers, talking to a mysql server.&lt;/p&gt;
+
+&lt;p&gt;And therein lies the elegance of dockerizing application deployment: simple, clean, repeatable units of software. Orchestrated.&lt;/p&gt;
+
+&lt;p&gt;Have fun!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Self-standing Ceph/deis-store docker containers</title>
+      <link>http://ian.blenke.com/post/2014-11-05-self-standing-ceph-slash-deis-store-docker-containers/</link>
+      <pubDate>Wed, 05 Nov 2014 14:40:59 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-05-self-standing-ceph-slash-deis-store-docker-containers/</guid>
+      <description>&lt;p&gt;A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.&lt;/p&gt;
+
+&lt;p&gt;As Docker is meant for immutable infrastructure, this poses somewhat of a challenge for production deployments. Rather than tackle that subject here, we&amp;rsquo;ll revisit persistence on immutable infrastructure in a production capacity in a future blog post.&lt;/p&gt;
+
+&lt;p&gt;The first challenge is identifying an S3 implementation to throw into a container.&lt;/p&gt;
+
+&lt;p&gt;There are a few feature sparse/dummy solutions that might suit development needs:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://s3ninja.net/&#34;&gt;s3-ninja&lt;/a&gt; (github &lt;a href=&#34;https://github.com/scireum/s3ninja&#34;&gt;scireum/s3ninja&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jubos/fake-s3&#34;&gt;fake-s3&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://sourceforge.net/projects/s3mockup/&#34;&gt;S3Mockup&lt;/a&gt;
+(and a number of others which I&amp;rsquo;d rather not even consider)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are a number of good functional options for actual S3 implementations:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://ceph.com&#34;&gt;ceph&lt;/a&gt; (github &lt;a href=&#34;https://github.com/ceph/ceph&#34;&gt;ceph/ceph&lt;/a&gt;), specifically the &lt;a href=&#34;http://ceph.com/docs/master/radosgw/&#34;&gt;radosgw&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/eucalyptus/eucalyptus/wiki/Walrus-S3-API&#34;&gt;walrus&lt;/a&gt; from Eucalyptus&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://basho.com/riak-cloud-storage/&#34;&gt;riak cs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.skylable.com/download/#LibreS3&#34;&gt;libres3&lt;/a&gt;, backended by the opensource &lt;a href=&#34;http://www.skylable.com/download/#SX&#34;&gt;Skylable Sx&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/nimbusproject/nimbus/tree/master/cumulus&#34;&gt;cumulus&lt;/a&gt; is an S3 implementation for &lt;a href=&#34;http://www.nimbusproject.org/docs/current/faq.html#cumulus&#34;&gt;Nimbus&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cloudian.com/community-edition.php&#34;&gt;cloudian&lt;/a&gt; which is a non-opensource commercial product&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/stackforge/swift3&#34;&gt;swift3&lt;/a&gt; as an S3 compatibility layer with swift on the backend&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/cloudfoundry-attic/vblob&#34;&gt;vblob&lt;/a&gt; a node.js based attic&amp;rsquo;ed project at CloudFoundry&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/mattjamieson/parkplace&#34;&gt;parkplace&lt;/a&gt; backended by bittorrent&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/razerbeans/boardwalk&#34;&gt;boardwalk&lt;/a&gt; backended by ruby, sinatra, and mongodb&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Of the above, one stands out as the underlying persistence engine used by a larger docker backended project: &lt;a href=&#34;http://deis.io&#34;&gt;Deis&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Rather than re-invent the wheel, it is possible to use deis-store directly.&lt;/p&gt;
+
+&lt;p&gt;As Deis deploys on CoreOS, there is an understandable inherent dependency on &lt;a href=&#34;http://github.com/coreos/etcd/&#34;&gt;etcd&lt;/a&gt; for service discovery.&lt;/p&gt;
+
+&lt;p&gt;If you happen to be targeting CoreOS, you can simply point your etcd &amp;ndash;peers option or &lt;code&gt;ETCD_HOST&lt;/code&gt; environment variable at &lt;code&gt;$COREOS_PRIVATE_IPV4&lt;/code&gt; and skip this next step.&lt;/p&gt;
+
+&lt;p&gt;First, make sure your environment includes the &lt;code&gt;DOCKER_HOST&lt;/code&gt; and related variables for the boot2docker environment:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eval $(boot2docker shellinit)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now, discover the IP of the boot2docker guest VM, as that is what we will bind the etcd to:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;IP=&amp;quot;$(boot2docker ip 2&amp;gt;/dev/null)&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next, we can spawn etcd and publish the ports for the other containers to use:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name etcd \
+           --publish 4001:4001 \
+           --publish 7001:7001 \
+           --detach \
+           coreos/etcd:latest \
+           /go/bin/app -listen-client-urls http://0.0.0.0:4001 \
+                       -advertise-client-urls http://$IP:4001 \
+                       -listen-peer-urls http://0.0.0.0:7001 \
+                       -initial-advertise-peer-urls http://$IP:7001 \
+                       -data-dir=/tmp/etcd
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Normally, we wouldn&amp;rsquo;t put the etcd persistence in a tmpfs for consistency reasons after a reboot, but for a development container: we love speed!&lt;/p&gt;
+
+&lt;p&gt;Now that we have an etcd container running, we can spawn the deis-store daemon container that runs the ceph object-store daemon (OSD) module.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-daemon \
+           --volumes-from=deis-store-daemon-data \
+           --env HOST=$IP \
+           --publish 6800 \
+           --net host \
+           --detach \
+           deis/store-daemon:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It is probably a good idea to mount the /var/lib/deis/store volume for persistence, but this is a developer container, so we&amp;rsquo;ll forego that step.&lt;/p&gt;
+
+&lt;p&gt;The ceph-osd will wait in a loop when starting until it can talk to ceph-mon, which is the next component provided by the deis-store monitor container.&lt;/p&gt;
+
+&lt;p&gt;In order to prepare the etcd config tree for deis-store monitor, we must first set a key for this new deis-store-daemon component.&lt;/p&gt;
+
+&lt;p&gt;While we could do that with a wget/curl PUT to the etcd client port (4001), using etcdctl makes things a bit easier.&lt;/p&gt;
+
+&lt;p&gt;It is generally a good idea to match the version of the etcdctl client with the version of etcd you are using.&lt;/p&gt;
+
+&lt;p&gt;As the CoreOS team doesn&amp;rsquo;t put out an etcdctl container as of yet, one way to do this is to build/install etcdctl inside a coreos/etcd container:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --rm \
+           coreos/etcd \
+           /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; \
+                       go install ; \
+                       /go/bin/etcdctl --peers $IP:4001 \
+                       set /deis/store/hosts/$IP $IP&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This isn&amp;rsquo;t ideal, of course, as there is a slight delay as etcdctl is built and installed before we use it, but it serves the purpose.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_daemon_settings/&#34;&gt;deis/store-daemon settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-osd a bit.&lt;/p&gt;
+
+&lt;p&gt;Now we can start deis-store-monitor, which will use that key to spin up a ceph-mon that monitors this (and any other) ceph-osd instances likewise registered in the etcd configuration tree.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-monitor \
+           --env HOST=$IP \
+           --publish 6789 \
+           --net host \
+           --detach \
+           deis/store-monitor:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As before, there are volumes that probably should be mounted for /etc/ceph and /var/lib/ceph/mon, but this is a development image, so we&amp;rsquo;ll skip that.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_monitor_settings/&#34;&gt;deis/store-monitor settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-mon a bit.&lt;/p&gt;
+
+&lt;p&gt;Now that ceph-mon is running, ceph-osd will continue starting up. We now have a single-node self-standing ceph storage platform, but no S3.&lt;/p&gt;
+
+&lt;p&gt;The S3 functionality is provided by the ceph-radosgw component, which is provided by the deis-store-gateway container.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-gateway \
+           --hostname deis-store-gateway \
+           --env HOST=$IP \
+           --env EXTERNAL_PORT=8888 \
+           --publish 8888:8888 \
+           --detach \
+           deis/store-gateway:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There is no persistence in ceph-radosgw that warrant a volume mapping, so we can ignore that entirely regardless of environment.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_gateway_settings/&#34;&gt;deis/store-gateway settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-radosgw a bit.&lt;/p&gt;
+
+&lt;p&gt;We now have a functional self-standing S3 gateway, but we don&amp;rsquo;t know the credentials to use it. For that, we can run etcdctl again:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;AWS_ACCESS_KEY_ID=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/accessKey&amp;quot;)
+AWS_SECRET_ACCESS_KEY=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/secretKey&amp;quot;)
+AWS_S3_HOST=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/host&amp;quot;)
+AWS_S3_PORT=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/port&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note that the host here isn&amp;rsquo;t the normal AWS gateway address, so you will need to specify things for your S3 client to access it correctly.&lt;/p&gt;
+
+&lt;p&gt;Likewise, you may need to specify an URL scheme of &amp;ldquo;http&amp;rdquo;, as the above does not expose an HTTPS encrypted port.&lt;/p&gt;
+
+&lt;p&gt;There are also S3 client changes that &lt;a href=&#34;https://github.com/deis/deis/issues/2326&#34;&gt;may be necessary&lt;/a&gt; depending on the &amp;ldquo;calling format&amp;rdquo; of the client libraries. You may need to &lt;a href=&#34;http://stackoverflow.com/questions/24312350/using-paperclip-fog-and-ceph&#34;&gt;changes things like paperclip&lt;/a&gt; to &lt;a href=&#34;https://github.com/thoughtbot/paperclip/issues/1577&#34;&gt;work with fog&lt;/a&gt;. There are numerous tools that work happily with ceph, like &lt;a href=&#34;https://github.com/stiller/s3_to_ceph/blob/master/s3_to_ceph.rb&#34;&gt;s3_to_ceph&lt;/a&gt; and even gems like &lt;a href=&#34;https://github.com/fog/fog-radosgw&#34;&gt;fog-radosgw&lt;/a&gt; that try and help make this painless for your apps.&lt;/p&gt;
+
+&lt;p&gt;I will update this blog post shortly with an example of a containerized s3 client to show how to prove your ceph radosgw is working.&lt;/p&gt;
+
+&lt;p&gt;Have fun!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Using Boot2Docker</title>
+      <link>http://ian.blenke.com/post/2014-11-04-using-boot2docker/</link>
+      <pubDate>Tue, 04 Nov 2014 23:13:25 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-04-using-boot2docker/</guid>
+      <description>
+
+&lt;h2 id=&#34;boot2docker-command-line:ba823fb38ea943dd7bd22d9529975abb&#34;&gt;Boot2Docker command-line&lt;/h2&gt;
+
+&lt;p&gt;Preface: the &lt;a href=&#34;https://github.com/boot2docker/boot2docker&#34;&gt;boot2docker README&lt;/a&gt; is a great place to discover the below commands in more detail.&lt;/p&gt;
+
+&lt;p&gt;Now that we have Boot2Docker installed, we need to initialize a VM instance&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker init
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This merely defines the default boot2docker VM, it does not start it. To do that, we need to bring it &amp;ldquo;up&amp;rdquo;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker up
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When run, it looks something like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;icbcfmbp:~ icblenke$ boot2docker up
+Waiting for VM and Docker daemon to start...
+..........ooo
+Started.
+Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/ca.pem
+Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/cert.pem
+Writing /Users/icblenke/.boot2docker/certs/boot2docker-vm/key.pem
+
+To connect the Docker client to the Docker daemon, please set:
+    export DOCKER_CERT_PATH=/Users/icblenke/.boot2docker/certs/boot2docker-vm
+    export DOCKER_TLS_VERIFY=1
+    export DOCKER_HOST=tcp://192.168.59.103:2376
+
+icbcfmbp:~ icblenke$
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This is all fine and dandy, but that shell didn&amp;rsquo;t actually source those variables. To do that we use boot2docker shellinit:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eval $(boot2docker shellinit)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now the shell has those variables exported for the running boot2docker VM.&lt;/p&gt;
+
+&lt;p&gt;The persistence of the boot2docker VM lasts only until we run a boot2docker destroy&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker destroy
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After doing this, there is no longer a VM defined. We would need to go back to the boot2docker init step above and repeat.&lt;/p&gt;
+
+&lt;h2 id=&#34;docker-command-line:ba823fb38ea943dd7bd22d9529975abb&#34;&gt;Docker command-line&lt;/h2&gt;
+
+&lt;p&gt;From this point forward, we use the docker command to interact with the boot2docker VM as if we are on a linux docker host.&lt;/p&gt;
+
+&lt;p&gt;The docker command is just a compiled go application that makes RESTful calls to the docker daemon inside the linux VM.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bash-3.2$ docker info
+Containers: 0
+Images: 0
+Storage Driver: aufs
+ Root Dir: /mnt/sda1/var/lib/docker/aufs
+  Dirs: 0
+  Execution Driver: native-0.2
+  Kernel Version: 3.16.4-tinycore64
+  Operating System: Boot2Docker 1.3.1 (TCL 5.4); master : 9a31a68 - Fri Oct 31 03:14:34 UTC 2014
+  Debug mode (server): true
+  Debug mode (client): false
+  Fds: 10
+  Goroutines: 11
+  EventsListeners: 0
+  Init Path: /usr/local/bin/docker
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This holds true for both OS/X and Windows.&lt;/p&gt;
+
+&lt;p&gt;The boot2docker facade is just a handy wrapper to prepare the guest linux host VM for the docker daemin and local docker command-line client for your development host OS environment.&lt;/p&gt;
+
+&lt;p&gt;And now you have a starting point for exploring &lt;a href=&#34;http://docker.io&#34;&gt;Docker&lt;/a&gt;!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Installing Boot2Docker</title>
+      <link>http://ian.blenke.com/post/2014-11-04-installing-boot2docker/</link>
+      <pubDate>Tue, 04 Nov 2014 22:41:53 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-04-installing-boot2docker/</guid>
+      <description>
+
+&lt;p&gt;Starting with a new team of developers, it helps to document the bootstrapping steps to a development environment.&lt;/p&gt;
+
+&lt;p&gt;Rather than try and use a convergence tool like Chef, Puppet, Ansible, or SALT, this time the environment will embrace Docker.&lt;/p&gt;
+
+&lt;p&gt;We could use a tool like Vagrant, but we need to support both Windows and Mac development workstations, and Vagrant under Windows can be vexing.&lt;/p&gt;
+
+&lt;p&gt;For this, we will begin anew using &lt;a href=&#34;http://boot2docker.io&#34;&gt;Boot2Docker&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Before we begin, be sure to install &lt;a href=&#34;https://www.virtualbox.org/&#34;&gt;VirtualBox&lt;/a&gt; from Oracle&amp;rsquo;s &lt;a href=&#34;https://www.virtualbox.org/&#34;&gt;VirtualBox.org website&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The easiest way to install VirtualBox is to use &lt;a href=&#34;http://caskroom.io/&#34;&gt;HomeBrew Cask&lt;/a&gt; under &lt;a href=&#34;http://brew.sh&#34;&gt;HomeBrew&lt;/a&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;brew install caskroom/cask/brew-cask
+brew cask install virtualbox
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The easiest way to install boot2docker is to use &lt;a href=&#34;http://brew.sh&#34;&gt;HomeBrew&lt;/a&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;brew install boot2docker
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Afterward, be sure to upgrade the homebrew bottle to the latest version of boot2docker:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker upgrade
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, a sample commandline install of boot2docker might look like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget https://github.com/boot2docker/osx-installer/releases/download/v1.3.1/Boot2Docker-1.3.1.pkg
+sudo installer -pkg ~/Downloads/Boot2Docker-1.3.1.pkg -target /
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;I&amp;rsquo;ll leave the commandline install of VirtualBox up to your imagination. With &lt;a href=&#34;http://caskroom.io&#34;&gt;HomeBrew Cask&lt;/a&gt;, there&amp;rsquo;s really not much of a point.&lt;/p&gt;
+
+&lt;p&gt;If you&amp;rsquo;re still not comfortable, below is a pictoral screenshot guide to installing boot2docker the point-and-click way.&lt;/p&gt;
+
+&lt;h2 id=&#34;step-0:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 0&lt;/h2&gt;
+
+&lt;p&gt;Download &lt;a href=&#34;https://github.com/boot2docker/osx-installer/releases&#34;&gt;boot2docker for OS/X&lt;/a&gt; or &lt;a href=&#34;https://github.com/boot2docker/windows-installer/releases&#34;&gt;boot2docker for Windows&lt;/a&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-1:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 1&lt;/h2&gt;
+
+&lt;p&gt;Run the downloaded Boot2Docker.pkg or docker-install.exe to kick off the installer.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step1-downloads.png&#34; alt=&#34;Boot2docker.pkg in Downloads folder&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-2:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 2&lt;/h2&gt;
+
+&lt;p&gt;Click the Continue button to allow the installer to run a program to detect if boot2docker can be installed.&lt;/p&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step2-run-a-program.png&#34; alt=&#34;Allow installer to run a program to detect if boot2docker can be installed&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-3:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 3&lt;/h2&gt;
+
+&lt;p&gt;Click the Continue button to proceed beyond the initial installation instructions dialog.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step3-install-splash.png&#34; alt=&#34;Instructions to install boot2docker&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-4:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 4&lt;/h2&gt;
+
+&lt;p&gt;The installer will now ask for an admin username/password to obtain admin rights to install boot2docker.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step4-enter-password.png&#34; alt=&#34;Installer asks for admin rights to install boot2docker&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-5:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 5&lt;/h2&gt;
+
+&lt;p&gt;Before installing, the installer will advise how much space the install will take. Click the Install button to start the actual install.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step5-standard-install.png&#34; alt=&#34;Advice on how much space boot2docker will take when installed&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-6:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 6&lt;/h2&gt;
+
+&lt;p&gt;When the installation is successfully, click the Close button to exit the installer.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step6-install-completed-successfully.png&#34; alt=&#34;Install completed successfully&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;step-7:bda8e2da4c25c59eb4207f49eeff732d&#34;&gt;Step 7&lt;/h2&gt;
+
+&lt;p&gt;You now have a shiny icon for boot2docker in /Applications you can click on to start a boot2docker terminal window session.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://ian.blenke.com/images/screenshots/boot2docker/step7-installed-boot2docker-app.png&#34; alt=&#34;Boot2docker app is in Applications&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Congrats. You now have boot2docker installed.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Immutable Infrastructure Persistence</title>
+      <link>http://ian.blenke.com/immutable-infrastructure-persistence/</link>
+      <pubDate>Sat, 18 Oct 2014 11:55:14 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/immutable-infrastructure-persistence/</guid>
+      <description>&lt;p&gt;Here is a link to my &lt;a href=&#34;http://barcamptampabay.org/&#34;&gt;Tampa Bay Barcamp 2014 presentation slides&lt;/a&gt; for &lt;a href=&#34;http://ian.blenke.com/immutable-infrastructure-persistence/&#34;&gt;Immutable Infrastructure Persistence&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

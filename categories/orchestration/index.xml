@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Orchestration on Ian Blenke</title>
+    <link>http://ian.blenke.com/categories/orchestration/</link>
+    <description>Recent content in Orchestration on Ian Blenke</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <lastBuildDate>Fri, 07 Nov 2014 19:20:06 -0500</lastBuildDate>
+    <atom:link href="http://ian.blenke.com/categories/orchestration/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>fig-docker</title>
+      <link>http://ian.blenke.com/post/2014-11-07-fig-docker/</link>
+      <pubDate>Fri, 07 Nov 2014 19:20:06 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-07-fig-docker/</guid>
+      <description>&lt;p&gt;A common devops problem when developing &lt;a href=&#34;http://docker.io&#34;&gt;Docker&lt;/a&gt; containers is managing the orchestration of multiple containers in a development environment.&lt;/p&gt;
+
+&lt;p&gt;There are a number of orchestration harnesses for Docker available:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Docker&amp;rsquo;s &lt;a href=&#34;http://fig.sh&#34;&gt;Fig&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/dcm-oss/blockade&#34;&gt;blockade&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://docs.vagrantup.com/v2/provisioning/docker.html&#34;&gt;Vagrant&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/GoogleCloudPlatform/kubernetes&#34;&gt;kubernetes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/signalfuse/maestro-ng&#34;&gt;maestro-ng&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/michaelsauter/crane&#34;&gt;crane&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Centurylink&amp;rsquo;s &lt;a href=&#34;http://panamax.io/&#34;&gt;Panamax&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://shipyard-project.com/&#34;&gt;Shipyard&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://decking.io/&#34;&gt;Decking&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;NewRelic&amp;rsquo;s &lt;a href=&#34;https://github.com/newrelic/centurion&#34;&gt;Centurion&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Spotify&amp;rsquo;s &lt;a href=&#34;https://github.com/spotify/helios&#34;&gt;Helios&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/cattleio/stampede&#34;&gt;Stampede&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.getchef.com/solutions/docker/&#34;&gt;Chef&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.ansible.com/docker&#34;&gt;Ansible&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://flynn.io/&#34;&gt;Flynn&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/mailgun/shipper&#34;&gt;Shipper&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://octohost.io&#34;&gt;Octohost&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://tsuru.io/&#34;&gt;Tsuru&lt;/a&gt; with &lt;a href=&#34;https://github.com/tsuru/docker-cluster&#34;&gt;docker-cluster&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://clusterhq.com/&#34;&gt;Flocker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/CloudCredo/cloudfocker&#34;&gt;CloudFocker&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cloudsoftcorp.com/blog/2014/06/clocker-creating-a-docker-cloud-with-apache-brooklyn/&#34;&gt;Clocker&lt;/a&gt; and &lt;a href=&#34;http://brooklyn.incubator.apache.org&#34;&gt;Apache Brooklyn&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://cloudfoundry.org&#34;&gt;CloudFoundry&lt;/a&gt;&amp;rsquo;s &lt;a href=&#34;https://github.com/cf-platform-eng/docker-boshrelease&#34;&gt;docker-boshrelease&lt;/a&gt;/&lt;a href=&#34;https://github.com/cloudfoundry-incubator/diego-release&#34;&gt;diego&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Mesosphere &lt;a href=&#34;https://github.com/mesosphere/deimos&#34;&gt;Deimos&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://deis.io&#34;&gt;Deis&lt;/a&gt; (a PaaS that can git push deploy containers using &lt;a href=&#34;http://heroku.com&#34;&gt;Heroku&lt;/a&gt; buildpacks &lt;em&gt;or&lt;/em&gt; a Dockerfile)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are a number of hosted service offerings now as well:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://aws.amazon.com/ecs&#34;&gt;Amazon ECS&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.qualisystems.com/cloudshell-6-0-sneak-peek/&#34;&gt;CloudShell&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://elasticbox.com/how-it-works/&#34;&gt;ElasticBox&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Aw, heck, just check the &lt;a href=&#34;http://www.mindmeister.com/389671722/docker-ecosystem&#34;&gt;docker ecosystem mindmap&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are also RAFT/GOSSIP clustering solutions like:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://coreos.com/&#34;&gt;CoreOS&lt;/a&gt;/&lt;a href=&#34;https://github.com/coreos/fleet&#34;&gt;Fleet&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.openshift.com/products/origin&#34;&gt;OpenShift Origin&lt;/a&gt; uses &lt;a href=&#34;http://www.projectatomic.io/&#34;&gt;ProjectAtomic&lt;/a&gt;/&lt;a href=&#34;https://openshift.github.io/geard/&#34;&gt;Geard&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;My &lt;a href=&#34;https://github.com/ianblenke/coreos-vagrant-kitchen-sink&#34;&gt;coreos-vagrant-kitchen-sink&lt;/a&gt; github project submits &lt;a href=&#34;https://github.com/ianblenke/coreos-vagrant-kitchen-sink/tree/master/cloud-init&#34;&gt;cloud-init units&lt;/a&gt; via a YAML file when booting member nodes. It&amp;rsquo;s a good model for production, but it&amp;rsquo;s a bit heavy for development.&lt;/p&gt;
+
+&lt;p&gt;Docker is currently working on &lt;a href=&#34;https://www.youtube.com/watch?v=vtnSL79rZ6o&#34;&gt;Docker Clustering&lt;/a&gt;, but it is presently just a proof-of-concept and is now under a total re-write.&lt;/p&gt;
+
+&lt;p&gt;They are also &lt;a href=&#34;https://www.youtube.com/watch?v=YuSq6bXHnOI&#34;&gt;implementing docker composition&lt;/a&gt; which provides Fig like functionality using upcoming docker &amp;ldquo;groups&amp;rdquo;.&lt;/p&gt;
+
+&lt;p&gt;That influence of Fig makes sense, as &lt;a href=&#34;http://venturebeat.com/2014/07/22/docker-buys-orchard-a-2-man-startup-with-a-cloud-service-for-running-docker-friendly-apps/&#34;&gt;Docker bought Orchard&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Internally, Docker developers use &lt;a href=&#34;http://fig.sh&#34;&gt;Fig&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Docker&amp;rsquo;s website also directs everyone to &lt;a href=&#34;http://boot2docker.io&#34;&gt;Boot2Docker&lt;/a&gt;, as that is the tool Docker developers use as their docker baseline environment.&lt;/p&gt;
+
+&lt;p&gt;Boot2Docker spawns a &lt;a href=&#34;https://www.virtualbox.org/&#34;&gt;VirtualBox&lt;/a&gt; based VM as well as a native docker client runtime on the developer&amp;rsquo;s host machine, and provides the &lt;code&gt;DOCKER_HOST&lt;/code&gt; and related enviroments necessary for the client to talk to the VM.&lt;/p&gt;
+
+&lt;p&gt;This allows a developer&amp;rsquo;s Windows or OS/X machine to have a docker command that behaves as if the docker containers are running natively on their host machine.&lt;/p&gt;
+
+&lt;p&gt;While Fig is easy to install under OS/X as it has native Python support (&amp;ldquo;pip install fig&amp;rdquo;), installing Fig on a Windows developer workstation would normally require Python support be installed separately.&lt;/p&gt;
+
+&lt;p&gt;Rather than do that, I&amp;rsquo;ve built a new &lt;a href=&#34;https://registry.hub.docker.com/u/ianblenke/fig-docker/&#34;&gt;ianblenke/fig-docker&lt;/a&gt; docker Hub image, which is auto-built from &lt;a href=&#34;https://github.com/ianblenke/docker-fig-docker&#34;&gt;ianblenke/docker-fig-docker&lt;/a&gt; on github.&lt;/p&gt;
+
+&lt;p&gt;This allows running fig inside a docker container using:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run -v $(pwd):/app \
+           -v $DOCKER_CERT_PATH:/certs \
+           -e DOCKER_CERT_PATH=/certs \
+           -e DOCKER_HOST=$DOCKER_HOST \
+           -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY \
+           -ti --rm ianblenke/fig-docker fig --help
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, a developer can alias it:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;alias fig=&amp;quot;docker run -v $(pwd):/app \
+                      -v $DOCKER_CERT_PATH:/certs
+                      -e DOCKER_CERT_PATH=/certs \
+                      -e DOCKER_HOST=$DOCKER_HOST \
+                      -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY \
+                      -ti --rm ianblenke/fig-docker fig&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now the developer can run &lt;code&gt;fig&lt;/code&gt; as if it is running on their development host, continuing the boot2docker illusion.&lt;/p&gt;
+
+&lt;p&gt;In the above examples, the current directory &lt;code&gt;$(pwd)&lt;/code&gt; is being mounted as /app inside the docker container.&lt;/p&gt;
+
+&lt;p&gt;On a boot2docker install, the boot2docker VM is the actual source of that volume path.&lt;/p&gt;
+
+&lt;p&gt;That means you would actually have to have the current path inside the boot2docker VM as well.&lt;/p&gt;
+
+&lt;p&gt;To do that, on a Mac, do this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker down
+VBoxManage sharedfolder add boot2docker-vm -name home -hostpath /Users
+boot2docker up
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;From this point forward, until the next &lt;code&gt;boot2docker init&lt;/code&gt;, your boot2docker VM should have your home directory mounted as /Users and the path should be the same.&lt;/p&gt;
+
+&lt;p&gt;A similar trick happens for Windows hosts, providing the same path inside the boot2docker VM as a developer would use.&lt;/p&gt;
+
+&lt;p&gt;This allows a normalized docker/fig interface for developers to begin their foray into docker orchestration.&lt;/p&gt;
+
+&lt;p&gt;Let&amp;rsquo;s setup a very quick &lt;a href=&#34;http://rubyonrails.org/&#34;&gt;Ruby on Rails&lt;/a&gt; application from scratch, and then add a Dockerfile and fig.yml that spins up a mysql service for it to talk to.&lt;/p&gt;
+
+&lt;p&gt;Here&amp;rsquo;s a quick script that does just that. The only requirement is a functional docker command able to spin up containers.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;#!/bin/bash
+set -ex
+
+# Source the boot2docker environment variables
+eval $(boot2docker shellinit 2&amp;gt;/dev/null)
+
+# Use a rails container to create a new rails project in the current directory called figgypudding
+docker run -it --rm -v $(pwd):/app rails:latest bash -c &#39;rails new figgypudding; cp -a /figgypudding /app&#39;
+
+cd figgypudding
+
+# Create the Dockerfile used to build the figgypudding_web:latest image used by the figgypudding_web_1 container
+cat &amp;lt;&amp;lt;EOD &amp;gt; Dockerfile
+FROM rails:onbuild
+ENV HOME /usr/src/app
+EOD
+
+# This is the Fig orchestration configuration
+cat &amp;lt;&amp;lt;EOF &amp;gt; fig.yml
+mysql:
+  environment:
+    MYSQL_ROOT_PASSWORD: supersecret
+    MYSQL_DATABASE: figgydata
+    MYSQL_USER: figgyuser
+    MYSQL_PASSWORD: password
+  ports:
+    - &amp;quot;3306:3306&amp;quot;
+  image: mysql:latest
+figgypudding:
+  environment:
+    RAILS_ENV: development
+    DATABASE_URL: mysql2://figgyuser:password@172.17.42.1:3306/figgydata
+  links:
+    - mysql
+  ports:
+    - &amp;quot;3000:3000&amp;quot;
+  build: .
+  command: bash -xc &#39;bundle exec rake db:migrate &amp;amp;&amp;amp; bundle exec rails server&#39;
+EOF
+
+# Rails defaults to sqlite, convert it to use mysql
+sed -i -e &#39;s/sqlite3/mysql2/&#39; Gemfile
+
+# Update the Gemfile.lock using the rails container we referenced earlier
+docker run --rm -v $(pwd):/usr/src/app -w /usr/src/app rails:latest bundle update
+
+# Use the fig command from my fig-docker container to fire up the Fig formation
+docker run -v $(pwd):/app -v $DOCKER_CERT_PATH:/certs \
+                          -e DOCKER_CERT_PATH=/certs \
+                          -e DOCKER_HOST=$DOCKER_HOST \
+                          -e DOCKER_TLS_VERIFY=$DOCKER_TLS_VERIFY \
+                          -ti --rm ianblenke/fig-docker fig up
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;After running that, there should now be a web server running on the boot2docker VM, which should generally be &lt;a href=&#34;http://192.168.59.103:3000/&#34;&gt;http://192.168.59.103:3000/&lt;/a&gt; as that seems to be the common boot2docker default IP.&lt;/p&gt;
+
+&lt;p&gt;This is fig, distilled to its essence.&lt;/p&gt;
+
+&lt;p&gt;Beyond this point, a developer can &amp;ldquo;fig build ; fig up&amp;rdquo; and see the latest result of their work. This is something ideally added as a git post-commit hook or a iteration harness like &lt;a href=&#34;https://github.com/guard/guard&#34;&gt;Guard&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;While it may not appear &lt;em&gt;pretty&lt;/em&gt; at first glance, realize that only &lt;code&gt;cat&lt;/code&gt;, and &lt;code&gt;sed&lt;/code&gt; were used on the host here (and very well could also themselves have also been avoided). No additional software was installed on the host, yet a rails app was created and deployed in docker containers, talking to a mysql server.&lt;/p&gt;
+
+&lt;p&gt;And therein lies the elegance of dockerizing application deployment: simple, clean, repeatable units of software. Orchestrated.&lt;/p&gt;
+
+&lt;p&gt;Have fun!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Self-standing Ceph/deis-store docker containers</title>
+      <link>http://ian.blenke.com/post/2014-11-05-self-standing-ceph-slash-deis-store-docker-containers/</link>
+      <pubDate>Wed, 05 Nov 2014 14:40:59 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/post/2014-11-05-self-standing-ceph-slash-deis-store-docker-containers/</guid>
+      <description>&lt;p&gt;A common challenge for cloud orchestration is simulating or providing an S3 service layer, particularly for development environments.&lt;/p&gt;
+
+&lt;p&gt;As Docker is meant for immutable infrastructure, this poses somewhat of a challenge for production deployments. Rather than tackle that subject here, we&amp;rsquo;ll revisit persistence on immutable infrastructure in a production capacity in a future blog post.&lt;/p&gt;
+
+&lt;p&gt;The first challenge is identifying an S3 implementation to throw into a container.&lt;/p&gt;
+
+&lt;p&gt;There are a few feature sparse/dummy solutions that might suit development needs:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://s3ninja.net/&#34;&gt;s3-ninja&lt;/a&gt; (github &lt;a href=&#34;https://github.com/scireum/s3ninja&#34;&gt;scireum/s3ninja&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jubos/fake-s3&#34;&gt;fake-s3&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://sourceforge.net/projects/s3mockup/&#34;&gt;S3Mockup&lt;/a&gt;
+(and a number of others which I&amp;rsquo;d rather not even consider)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;There are a number of good functional options for actual S3 implementations:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://ceph.com&#34;&gt;ceph&lt;/a&gt; (github &lt;a href=&#34;https://github.com/ceph/ceph&#34;&gt;ceph/ceph&lt;/a&gt;), specifically the &lt;a href=&#34;http://ceph.com/docs/master/radosgw/&#34;&gt;radosgw&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/eucalyptus/eucalyptus/wiki/Walrus-S3-API&#34;&gt;walrus&lt;/a&gt; from Eucalyptus&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://basho.com/riak-cloud-storage/&#34;&gt;riak cs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.skylable.com/download/#LibreS3&#34;&gt;libres3&lt;/a&gt;, backended by the opensource &lt;a href=&#34;http://www.skylable.com/download/#SX&#34;&gt;Skylable Sx&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/nimbusproject/nimbus/tree/master/cumulus&#34;&gt;cumulus&lt;/a&gt; is an S3 implementation for &lt;a href=&#34;http://www.nimbusproject.org/docs/current/faq.html#cumulus&#34;&gt;Nimbus&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cloudian.com/community-edition.php&#34;&gt;cloudian&lt;/a&gt; which is a non-opensource commercial product&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/stackforge/swift3&#34;&gt;swift3&lt;/a&gt; as an S3 compatibility layer with swift on the backend&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/cloudfoundry-attic/vblob&#34;&gt;vblob&lt;/a&gt; a node.js based attic&amp;rsquo;ed project at CloudFoundry&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/mattjamieson/parkplace&#34;&gt;parkplace&lt;/a&gt; backended by bittorrent&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/razerbeans/boardwalk&#34;&gt;boardwalk&lt;/a&gt; backended by ruby, sinatra, and mongodb&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Of the above, one stands out as the underlying persistence engine used by a larger docker backended project: &lt;a href=&#34;http://deis.io&#34;&gt;Deis&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Rather than re-invent the wheel, it is possible to use deis-store directly.&lt;/p&gt;
+
+&lt;p&gt;As Deis deploys on CoreOS, there is an understandable inherent dependency on &lt;a href=&#34;http://github.com/coreos/etcd/&#34;&gt;etcd&lt;/a&gt; for service discovery.&lt;/p&gt;
+
+&lt;p&gt;If you happen to be targeting CoreOS, you can simply point your etcd &amp;ndash;peers option or &lt;code&gt;ETCD_HOST&lt;/code&gt; environment variable at &lt;code&gt;$COREOS_PRIVATE_IPV4&lt;/code&gt; and skip this next step.&lt;/p&gt;
+
+&lt;p&gt;First, make sure your environment includes the &lt;code&gt;DOCKER_HOST&lt;/code&gt; and related variables for the boot2docker environment:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;eval $(boot2docker shellinit)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now, discover the IP of the boot2docker guest VM, as that is what we will bind the etcd to:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;IP=&amp;quot;$(boot2docker ip 2&amp;gt;/dev/null)&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next, we can spawn etcd and publish the ports for the other containers to use:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name etcd \
+           --publish 4001:4001 \
+           --publish 7001:7001 \
+           --detach \
+           coreos/etcd:latest \
+           /go/bin/app -listen-client-urls http://0.0.0.0:4001 \
+                       -advertise-client-urls http://$IP:4001 \
+                       -listen-peer-urls http://0.0.0.0:7001 \
+                       -initial-advertise-peer-urls http://$IP:7001 \
+                       -data-dir=/tmp/etcd
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Normally, we wouldn&amp;rsquo;t put the etcd persistence in a tmpfs for consistency reasons after a reboot, but for a development container: we love speed!&lt;/p&gt;
+
+&lt;p&gt;Now that we have an etcd container running, we can spawn the deis-store daemon container that runs the ceph object-store daemon (OSD) module.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-daemon \
+           --volumes-from=deis-store-daemon-data \
+           --env HOST=$IP \
+           --publish 6800 \
+           --net host \
+           --detach \
+           deis/store-daemon:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It is probably a good idea to mount the /var/lib/deis/store volume for persistence, but this is a developer container, so we&amp;rsquo;ll forego that step.&lt;/p&gt;
+
+&lt;p&gt;The ceph-osd will wait in a loop when starting until it can talk to ceph-mon, which is the next component provided by the deis-store monitor container.&lt;/p&gt;
+
+&lt;p&gt;In order to prepare the etcd config tree for deis-store monitor, we must first set a key for this new deis-store-daemon component.&lt;/p&gt;
+
+&lt;p&gt;While we could do that with a wget/curl PUT to the etcd client port (4001), using etcdctl makes things a bit easier.&lt;/p&gt;
+
+&lt;p&gt;It is generally a good idea to match the version of the etcdctl client with the version of etcd you are using.&lt;/p&gt;
+
+&lt;p&gt;As the CoreOS team doesn&amp;rsquo;t put out an etcdctl container as of yet, one way to do this is to build/install etcdctl inside a coreos/etcd container:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --rm \
+           coreos/etcd \
+           /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; \
+                       go install ; \
+                       /go/bin/etcdctl --peers $IP:4001 \
+                       set /deis/store/hosts/$IP $IP&amp;quot;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This isn&amp;rsquo;t ideal, of course, as there is a slight delay as etcdctl is built and installed before we use it, but it serves the purpose.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_daemon_settings/&#34;&gt;deis/store-daemon settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-osd a bit.&lt;/p&gt;
+
+&lt;p&gt;Now we can start deis-store-monitor, which will use that key to spin up a ceph-mon that monitors this (and any other) ceph-osd instances likewise registered in the etcd configuration tree.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-monitor \
+           --env HOST=$IP \
+           --publish 6789 \
+           --net host \
+           --detach \
+           deis/store-monitor:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;As before, there are volumes that probably should be mounted for /etc/ceph and /var/lib/ceph/mon, but this is a development image, so we&amp;rsquo;ll skip that.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_monitor_settings/&#34;&gt;deis/store-monitor settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-mon a bit.&lt;/p&gt;
+
+&lt;p&gt;Now that ceph-mon is running, ceph-osd will continue starting up. We now have a single-node self-standing ceph storage platform, but no S3.&lt;/p&gt;
+
+&lt;p&gt;The S3 functionality is provided by the ceph-radosgw component, which is provided by the deis-store-gateway container.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;docker run --name deis-store-gateway \
+           --hostname deis-store-gateway \
+           --env HOST=$IP \
+           --env EXTERNAL_PORT=8888 \
+           --publish 8888:8888 \
+           --detach \
+           deis/store-gateway:latest
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;There is no persistence in ceph-radosgw that warrant a volume mapping, so we can ignore that entirely regardless of environment.&lt;/p&gt;
+
+&lt;p&gt;There are also &lt;a href=&#34;http://docs.deis.io/en/latest/managing_deis/store_gateway_settings/&#34;&gt;deis/store-gateway settings&lt;/a&gt; of etcd keys that customize the behavior of ceph-radosgw a bit.&lt;/p&gt;
+
+&lt;p&gt;We now have a functional self-standing S3 gateway, but we don&amp;rsquo;t know the credentials to use it. For that, we can run etcdctl again:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;AWS_ACCESS_KEY_ID=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/accessKey&amp;quot;)
+AWS_SECRET_ACCESS_KEY=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/secretKey&amp;quot;)
+AWS_S3_HOST=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/host&amp;quot;)
+AWS_S3_PORT=$(docker run --rm coreos/etcd /bin/sh -c &amp;quot;cd /go/src/github.com/coreos/etcd/etcdctl; go install ; /go/bin/etcdctl --peers $IP:4001 get /deis/store/gateway/port&amp;quot;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note that the host here isn&amp;rsquo;t the normal AWS gateway address, so you will need to specify things for your S3 client to access it correctly.&lt;/p&gt;
+
+&lt;p&gt;Likewise, you may need to specify an URL scheme of &amp;ldquo;http&amp;rdquo;, as the above does not expose an HTTPS encrypted port.&lt;/p&gt;
+
+&lt;p&gt;There are also S3 client changes that &lt;a href=&#34;https://github.com/deis/deis/issues/2326&#34;&gt;may be necessary&lt;/a&gt; depending on the &amp;ldquo;calling format&amp;rdquo; of the client libraries. You may need to &lt;a href=&#34;http://stackoverflow.com/questions/24312350/using-paperclip-fog-and-ceph&#34;&gt;changes things like paperclip&lt;/a&gt; to &lt;a href=&#34;https://github.com/thoughtbot/paperclip/issues/1577&#34;&gt;work with fog&lt;/a&gt;. There are numerous tools that work happily with ceph, like &lt;a href=&#34;https://github.com/stiller/s3_to_ceph/blob/master/s3_to_ceph.rb&#34;&gt;s3_to_ceph&lt;/a&gt; and even gems like &lt;a href=&#34;https://github.com/fog/fog-radosgw&#34;&gt;fog-radosgw&lt;/a&gt; that try and help make this painless for your apps.&lt;/p&gt;
+
+&lt;p&gt;I will update this blog post shortly with an example of a containerized s3 client to show how to prove your ceph radosgw is working.&lt;/p&gt;
+
+&lt;p&gt;Have fun!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

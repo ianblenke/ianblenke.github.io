@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Persistence on Ian Blenke</title>
+    <link>http://ian.blenke.com/categories/persistence/</link>
+    <description>Recent content in Persistence on Ian Blenke</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <copyright>This work is licensed under a Creative Commons Attribution-ShareAlike 4.0 International License.</copyright>
+    <lastBuildDate>Sat, 18 Oct 2014 11:55:14 -0500</lastBuildDate>
+    <atom:link href="http://ian.blenke.com/categories/persistence/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Immutable Infrastructure Persistence</title>
+      <link>http://ian.blenke.com/immutable-infrastructure-persistence/</link>
+      <pubDate>Sat, 18 Oct 2014 11:55:14 -0500</pubDate>
+      
+      <guid>http://ian.blenke.com/immutable-infrastructure-persistence/</guid>
+      <description>&lt;p&gt;Here is a link to my &lt;a href=&#34;http://barcamptampabay.org/&#34;&gt;Tampa Bay Barcamp 2014 presentation slides&lt;/a&gt; for &lt;a href=&#34;http://ian.blenke.com/immutable-infrastructure-persistence/&#34;&gt;Immutable Infrastructure Persistence&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

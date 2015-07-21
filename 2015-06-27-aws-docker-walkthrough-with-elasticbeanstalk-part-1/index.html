@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en-US" prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <meta name="keyword" content="">
+    <link rel="shortcut icon" href="/img/favicon.ico">
+
+    <title>AWS Docker Walkthrough with ElasticBeanstalk: Part 1</title>
+
+ 	
+	<link href="/css/journal.css" rel="stylesheet">
+
+ 	
+ 	<link href="/css/style.css" rel="stylesheet">
+</head>
+<body lang="en">
+	<div class="container">
+		<div class="row">
+			<div class="navbar navbar-default navbar-inverse" role="navigation">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="http://localhost:1313/">Ian Blenke</a> 
+				</div>
+				<div class="navbar-collapse collapse navbar-responsive-collapse">
+					<ul class="nav navbar-nav navbar-right">
+						<li><a href="http://localhost:1313/">Home</a></li>
+						<li><a href="http://localhost:1313//page/about/">About</a></li>
+						<li><a href="http://localhost:1313//page/resume/">Resume</a></li>
+						<li><a href="http://localhost:1313//post/">Blog</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<div class="container">	
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<h3>AWS Docker Walkthrough with ElasticBeanstalk: Part 1</h3>
+			<span class="label label-primary">Sat Jun 27, 2015</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-offset-1 col-md-10">
+			<br>
+			
+
+<p>While deploying docker containers for immutable infrastructure on AWS ElasticBeanstalk,
+I&rsquo;ve learned a number of useful tricks that go beyond the official Amazon documentation.</p>
+
+<p>This series of posts are an attempt to summarize some of the useful bits that may benefit
+others facing the same challenges.</p>
+
+<hr />
+
+<h1 id="part-1-preparing-a-vpc-for-your-elasticbeanstalk-environments:bf335f30ee332e0794e1b2dc65d742ea">Part 1 : Preparing a VPC for your ElasticBeanstalk environments</h1>
+
+<hr />
+
+<h3 id="step-1-prepare-your-aws-development-environment:bf335f30ee332e0794e1b2dc65d742ea">Step 1 : Prepare your AWS development environment.</h3>
+
+<p>On OS/X, I install <a href="http://brew.sh">homebrew</a>, and then:</p>
+
+<pre><code class="language-bash">brew install awscli
+</code></pre>
+
+<p>On Windows, I install <a href="https://chocolatey.org/">chocolatey</a> and then:</p>
+
+<pre><code class="language-bash">choco install awscli
+</code></pre>
+
+<p>Because <code>awscli</code> is a python tool, on either of these, or on the various Linux distribution flavors, we can also avoid native package management and alternatively use python <code>easyinstall</code> or <code>pip</code> directly:</p>
+
+<pre><code class="language-bash">pip install awscli
+</code></pre>
+
+<p>You may (or may not) need to prefix that pip install with <code>sudo</code>, depending. ie:</p>
+
+<pre><code class="language-bash">sudo pip install awscli
+</code></pre>
+
+<p>These tools will detect if they are out of date when you run them. You may eventually get a message like:</p>
+
+<pre><code>Alert: An update to this CLI is available.
+</code></pre>
+
+<p>When this happens, you will likely want to either upgrade via homebrew:</p>
+
+<pre><code class="language-bash">brew update &amp; brew upgrade awscli
+</code></pre>
+
+<p>or, more likely, upgrade using pip directly:</p>
+
+<pre><code class="language-bash">pip install --upgrade awscli
+</code></pre>
+
+<p>Again, you may (or may not) need to prefix that pip install with <code>sudo</code>, depending. ie:</p>
+
+<pre><code class="language-bash">sudo pip install --upgrade awscli
+</code></pre>
+
+<p>For the hardcore Docker fans out there, this is pretty trivial to run as a container as well. See <a href="https://github.com/CenturyLinkLabs/docker-aws-cli">CenturyLinkLabs/docker-aws-cli</a> for a good example of that. Managing an aws config file requires volume mapping, or passing <code>-e AWS_ACCESS_KEY_ID={redacted} -e AWS_SECRET_ACCESS_KEY={redacted}</code>. There are various guides to doing this out there. This will not be one of them ;)</p>
+
+<h3 id="step-2-prepare-your-aws-environment-variables:bf335f30ee332e0794e1b2dc65d742ea">Step 2: Prepare your AWS environment variables</h3>
+
+<p>If you haven&rsquo;t already, <a href="http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html#config-settings-and-precedence">prepare for AWS cli access</a>.</p>
+
+<p>You can now configure your <code>~/.aws/config</code> by running:</p>
+
+<pre><code>aws configure
+</code></pre>
+
+<p>This will create a default configuration.</p>
+
+<p>I&rsquo;ve yet to work with any company with only one AWS account though. You will likely find that you need to support managing multiple AWS configuration profiles.</p>
+
+<p>Here&rsquo;s an example <code>~/.aws/config</code> file with multiple profiles:</p>
+
+<pre><code>[default]
+output = json
+region = us-east-1
+
+[profile aws-dev]
+AWS_ACCESS_KEY_ID={REDACTED}
+AWS_SECRET_ACCESS_KEY={REDACTED}
+
+[profile aws-prod]
+AWS_ACCESS_KEY_ID={REDACTED}
+AWS_SECRET_ACCESS_KEY={REDACTED}
+</code></pre>
+
+<p>You can create this by running:</p>
+
+<pre><code class="language-bash">$ aws configure --profile aws-dev
+AWS Access Key ID [REDACTED]: YOURACCESSKEY
+AWS Secret Access Key [REDACTED]: YOURSECRETKEY
+Default region name [None]: us-east-1
+Default output format [None]: json
+</code></pre>
+
+<p>Getting in the habit of specifying <code>--profile aws-dev</code> is a bit of a reassurance that you&rsquo;re provisioning resources into the correct AWS account, and not sullying AWS cloud resources between VPC environments.</p>
+
+<h3 id="step-3-preparing-a-vpc:bf335f30ee332e0794e1b2dc65d742ea">Step 3: Preparing a VPC</h3>
+
+<p>Deploying anything to AWS EC2 Classic instances these days is to continue down the path of legacy maintenance.</p>
+
+<p>For new ElasticBeanstalk deployments, a VPC should be used.</p>
+
+<p>The easiest/best way to deploy a VPC is to use a <a href="http://aws.amazon.com/cloudformation/aws-cloudformation-templates/">CloudFormation template</a>.</p>
+
+<p>Below is a public gist of a VPC CloudFormation that I use for deployment:</p>
+
+<p>{% gist 0a6a6f26d1ecaa0d81eb %}</p>
+
+<p>Here is an example CloudFormation parameters file for this template:</p>
+
+<p>{% gist 9f4b8dd2b39c7d1c31ef %}</p>
+
+<p>To script the creation, updating, watching, and deleting of the CloudFormation VPC, I have this Makefile as well:</p>
+
+<p>{% gist 55b740ff19825d621ef4 %}</p>
+
+<p>You can get these same files by cloning my github project, and ssuming you have a profile named <code>aws-dev</code> as mentioned above, you can even run <code>make</code> and have it create the <code>myapp-dev</code> VPC via CloudFormation:</p>
+
+<pre><code>git clone https://github.com/ianblenke/aws-docker-walkthrough
+cd aws-docker-walkthrough
+make
+</code></pre>
+
+<p>You can run <code>make watch</code> to watch the CloudFormation events and wait for a <code>CREATE_COMPLETE</code> state.</p>
+
+<p>When this is complete, you can see the CloudFormation outputs by running:</p>
+
+<pre><code>make output
+</code></pre>
+
+<p>The output will look something like this:</p>
+
+<p>{% gist 59715079304a6db7182c %}</p>
+
+<p>These CloudFormation Outputs list parameters that we will need to pass to the ElasticBeanstalk Environment creation during the next part of this walkthrough.</p>
+
+<h1 id="one-final-vpc-note-iam-permissions-for-ec2-instance-profiles:bf335f30ee332e0794e1b2dc65d742ea">One final VPC note: IAM permissions for EC2 instance profiles</h1>
+
+<p>As a general rule of thumb, each AWS ElasticBanstalk Application Environment should be given its own IAM Instance Profile to use.</p>
+
+<p>Each AWS EC2 instance should be allowed to assume an IAM role for an IAM instance profile that gives it access to the AWS cloud resources it must interface with.</p>
+
+<p>This is accomplished by <a href="http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-metadata.html">introspecting on AWS instance metadata</a>. If you haven&rsquo;t been exposed to this yet, I strongly recommend poking around at <code>http://169.254.169.254</code> from your EC2 instances:</p>
+
+<pre><code class="language-bash">curl http://169.254.169.254/latest/meta-data/iam/security-credentials/role-myapp-dev
+</code></pre>
+
+<p>The JSON returned from that command allows an AWS library call with no credentials automatically obtain time-limited IAM STS credentials when run on AWS EC2 instances.</p>
+
+<p>This avoids having to embed &ldquo;permanent&rdquo; IAM access/secret keys as environment variables that may &ldquo;leak&rdquo; over time to parties that shouldn&rsquo;t have access.</p>
+
+<p>Early on, we tried to do this as an ebextension in <code>.ebextensions/00_iam.config</code>, but this only works if the admin running the <code>eb create</code> has IAM permissions for the AWS account, and it appears impossible to change the launch InstanceProfile by defining option settings or overriding cloud resources in an ebextensions config file.</p>
+
+<p>Instead, the VPC above generates an <code>InstanceProfile</code> that can be referenced later. More on that later in Part 2.</p>
+
+<p>Stay tuned&hellip;</p>
+
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-12">
+			<hr>
+		</div>
+	</div>	
+</div>
+
+  <div class="container">
+    <div class="row col-md-12">
+          <footer>
+            <div>
+                <p>
+                    &copy; 2014  ~ Powered By <a href="http://hugo.spf13.com">Hugo</a>
+                </p>
+            </div>
+            </footer>
+        </div>
+    </div>
+
+    
+    
+    <script src="/js/jquery-min-2.1.1.js"></script>
+    <script src="/js/bootstrap.min-3.1.1.js"></script>
+    </body>
+</html>
